@@ -9,6 +9,7 @@ from std_msgs.msg import String
 import pytesseract as ocr
 from PIL import Image as imagePil
 import os
+import time
 
 class ReadTag:
 
@@ -31,8 +32,8 @@ class ReadTag:
 		except cv_bridge.CvBridgeError as e:
 			print ("Error: Imagem da Tag nao recebida")
 			print(e)
-		lowerBound=np.array([65,45,40]) #lower boundary of the HSV image
-		upperBound=np.array([100,75,80]) #Upper boundary of the HSV image
+		lowerBound=np.array([60, 0, 0]) #lower boundary of the HSV image
+		upperBound=np.array([155, 50, 30]) #Upper boundary of the HSV image
 		#img_HSV=cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 		imgThresholder=cv2.inRange(img,lowerBound,upperBound,1)
 		#cv2.imshow("picamera",img)
@@ -43,16 +44,16 @@ class ReadTag:
 		cv2.imshow("window_tag", imgFilter)
 		cv2.waitKey(3)
 		filename = "{}.png".format(os.getpid())
-		cv2.imwrite(filename, imgThresholder)
-		text = ocr.image_to_string(imagePil.open(filename))
+		cv2.imwrite(filename, imgFilter)
+		text = ocr.image_to_string(imagePil.open(filename),config="-c tessedit_char_whitelist=1234567890.")
 		os.remove(filename)
 		print(text)
 		if text:
-			self.twist.linear.x=0.2
+			self.twist.linear.x = 0.4
 			self.twist.angular.z=0
-			self.cmd_vel_pub.publish(self.twist)
-			self.rate.sleep()
-			self.rate.sleep()
+			for x in range(0,5):
+				self.cmd_vel_pub.publish(self.twist)
+				time.sleep(0.5)
 #			self.twist.linear.x=0
 #			self.twist.angular.z=0
 #			self.string.data = "map"

@@ -18,7 +18,7 @@ using namespace std;
 
 void locatepoints(const cv_bridge::CvImagePtr , image_transport::Publisher, ros::Publisher);
 
-//static const std::string OPENCV_WINDOW = "Image window";
+static const std::string OPENCV_WINDOW = "Image window";
 
   ImageConverter::ImageConverter()
 		: imageTransport(nh){
@@ -48,8 +48,8 @@ void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg)
       			return;
     		}
 
-//	cv::imshow(OPENCV_WINDOW, img->image);
-//        cv::waitKey(3);
+	//cv::imshow(OPENCV_WINDOW, img->image);
+        //cv::waitKey(3);
 	locatepoints(img, imagePublisher, pub_points);
   }
 
@@ -59,11 +59,11 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 	Mat imgThresholder, imgThresholderTag, imgGrayScaled, image_HSV, imgHSV;
 	vector<Vec3b> buf0;
 	vector<Vec3b> buf1;
-
+	vector<Vec3b> buf2;
 	cvtColor(img->image, imgGrayScaled, CV_RGB2GRAY);
 	//cvtColor(img->image, imgHSV, CV_BGR2HSV);
 
-	threshold( imgGrayScaled, imgThresholder, 40, 255, 1);
+	threshold( imgGrayScaled, imgThresholder, 10, 255, 1);
 	//inRange(imgHSV, Scalar(0, 0, 0), Scalar(110, 255, 30), imgThresholder);
 
 	//cout<<"Erro Threshold"<<endl;
@@ -97,15 +97,16 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 		//waitKey(1);
 		//}
 		LineIterator it0(drawingContours, Point(0,480/2),Point(640,480/2),8);
-		LineIterator it1(drawingContours,Point(0, 480/2 - 150), Point(640, 480/2 - 150), 8);
-
+		LineIterator it1(drawingContours, Point(0, 480/2 - 150), Point(640, 480/2 - 150), 8);
+		LineIterator it2(drawingContours, Point(0, 480/2 + 150), Point(640, 480/2 + 150), 8);
 		//cout<<"erro LineIterator"<<endl;
 		//variable to recieve found points coordinates
 		vector<Point> points0(it0.count);
 		vector<Point> points1(it1.count);
+		vector<Point> points2(it2.count);
 		vector<Point> p0;
 		vector<Point> p1;
-
+		vector<Point> p2;
 		for(int index = 0; index<it0.count; index++){
 			buf0.push_back( Vec3b(*it0) );
 			if(buf0[index].val[0] != 0){
@@ -120,6 +121,14 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
                                 points1[index]=it1.pos();
                         }
                         it1++;
+                }
+
+		for(int index = 0; index<it2.count; index++){
+                        buf2.push_back( Vec3b(*it2) );
+                        if(buf2[index].val[0] != 0){
+                                points2[index]=it2.pos();
+                        }
+                        it2++;
                 }
 
 		for(int index = 0; index<it0.count; index++){
@@ -138,10 +147,20 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
                         }
                 }
 
+		for(int index = 0; index<it2.count; index++){
+                        if(points2[index].x !=0){
+                                circle(drawingContours, points2[index], 10, Scalar(0,255,0),1,8);
+                                //position.push_back(index);
+                                p2.push_back(points2[index]);
+                        }
+                }
+
+
 		if(p0.size()!=0){
 			roseli::PointVector points;
 			points.points_center.clear();
 			points.points_up.clear();
+			points.points_down.clear();
 			//cout<<"2"<<endl;
 			int i0=0;
 			for(vector<Point>::iterator it0 = p0.begin(); it0 != p0.end(); ++it0){
@@ -163,6 +182,15 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
                         i1++;
                         }
 
+			int i2=0;
+                        for(vector<Point>::iterator it2 = p2.begin(); it2 != p2.end(); ++it2){
+                                geometry_msgs::Point point_aux2;
+                                point_aux2.x=(*it2).x;
+                                point_aux2.y=(*it2).y;
+                                point_aux2.z=0;
+                                points.points_down.push_back(point_aux2);
+                        i1++;
+                        }
 
 			points.flag=i0;
 
@@ -173,8 +201,8 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 
 		//imshow(OPENCV_WINDOW, imgThresholder);
 		//waitKey('c');
-		//imshow("Contours",drawingContours);
-	 	//waitKey(1);
+		imshow("Contours",drawingContours);
+		waitKey(1);
 		//imshow("CONTOURS AND FOUND POINTS", drawingContours);
 		//waitKey('c');
 			if(p0.size()==0){
@@ -212,8 +240,8 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 					Mat cropImage = img->image(boundRect);
 					//imshow( "Contours",drawingContoursTag);
 					//waitKey('v');
-					//imshow("Imagem cortada", cropImage);
-					//waitKey('r');
+					imshow("Imagem cortada", cropImage);
+					waitKey('r');
 					img->image = cropImage;
 					imagePublisher.publish(img->toImageMsg());
 					rate.sleep();
