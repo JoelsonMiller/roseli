@@ -44,10 +44,16 @@ void read_encoder(const geometry_msgs::Pose2D::ConstPtr& msg){
 
 void odom_move(float mag, int tipo_movimento){
 
+	int flag;
 	pub_enc.publish(reset);
 
+	if( mag > 0)
+		flag = 1;
+	else
+		flag = -1;
+	
         while(1){
-        	if((angulo != 0)&&(distancia != 0)){
+        	if( (angulo != 0) && (distancia != 0) ){
                 	cout<<"Resetando"<<endl;
                        	pub_enc.publish(reset);
                 }
@@ -58,17 +64,15 @@ void odom_move(float mag, int tipo_movimento){
         //Continua o programa apenas quando as variaveis angulo e distanica
         // forem resetadas
 	if(tipo_movimento == 0){ // 0 == distância e 1 == angulo
-                while(distancia <= mag){
-                	move(0.07, 0);
-                }
+                while(distancia <= abs(mag))
+                	move(flag*0.07, 0);
 
                 cout<<"I reached the goal (distance)"<<endl;
                 move(0,0);
 	}
 	else if (tipo_movimento == 1){
-		while(angulo <= mag){
-                        move(0, 0.07);
-                }
+		while(angulo <= abs(mag))
+                        move(0, flag*0.07);
 
                 cout<<"I reached the goal (angulo)"<<endl;
                 move(0,0);
@@ -98,30 +102,28 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 	//dist = (points->points_center[1].x-points->points_center[0].x);
 //	ROS_INFO("Pontos na imagem %f", dist );
 
-	if((points->points_center.size()  == 1)||(points->points_center.size() == 0)){
+	if((points->points_center.size()  == 1)||(points->points_center.size() == 0)){ //Robô não se desloca
 			move(0,0);
 
 	}else if(points->points_center.size() == 2){
-		 if((points->points_center[1].x-points->points_center[0].x)>width/3){
-			if((points->points_up.size() == 0)&&(points->points_down.size()==2)){
+		 if((points->points_center[1].x-points->points_center[0].x) > width/3){
+			if((points->points_up.size() == 0) && (points->points_down.size() == 2)){
 				if(res < 0){
 					cout<<"Angulo de -90 graus"<<endl;
-					move(0,0);
+					odom_move(-90, 1);
 				}
 				else{
 					cout<<"Angulo de 90 graus"<<endl;
-					move(0,0);
+					odom_move(90, 1);
 				}
 			}
 			else if((points->points_up.size() == 2)&&(points->points_down.size()==2)){
-				if(res<0){
+				if(res < 0){
+					move(0, 0);
 					cout<<"Interseção tipo: -|"<<endl;
-					move(0,0);
 				}
 				else{
 					move(0,0);
-					usleep(1000000);
-					pub_enc.publish(reset);
 					cout<<"Interseção tipo:|-"<<endl;
 				}
 			}
@@ -130,14 +132,15 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				move(0,0);
 			}
 		}
-		else if((points->points_center[1].x-points->points_center[0].x)>2*width/3){
-			if((points->points_up.size()==0)&&(points->points_down.size()==2)){
+		else if((points->points_center[1].x - points->points_center[0].x) > 2*width/3){
+			if((points->points_up.size() == 0) && (points->points_down.size() == 2)){
 				cout<<"Interseção tipo: T"<<endl;
-				move(0,0);
+				odom_move(14, 0);
+				odom_move(90, 1)
 			}
 			else if((points->points_up.size()==2)&&(points->points_down.size()==2)){
 				cout<<"Interseção tipo: +"<<endl;
-				move(0,0);
+				odom_move(5, 0);
 			}
 		}
 		else{
@@ -148,9 +151,9 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				erro.data = -res;
 				setpoint.data = 0;
                         	pub_setpoint.publish(setpoint);
-                        	usleep(10000);
+                        	usleep(1000);
                         	pub_state.publish(erro);
-                        	usleep(10000);
+                        	usleep(1000);
                         	move(0.33, control_data);
                         	control_data = 0;
 		}
@@ -159,6 +162,18 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 			if(points->points_center[0].x < width/5){
 				cout<<"Interseção do tipo /"<<endl;
 				move(0,0);
+				adj = height/4;
+				down = points->points_down[1].x;
+				center = points->points_center[1].x;
+				opt = abs(down - center);
+				//opt_major = points->points_center[2].x - points->points_center[1].x;
+				ang = atan(opt/adj)*180/PI;
+				//adj_major = opt_major/tan(ang*PI/180);
+				ROS_INFO("O angulo da curva :%f e o valor de distancia: %f", ang, adj_major);
+				usleep(1000000);
+				move(0,0);
+				odom_move(14, 0);
+				odom_move(-80, 1);
 			}
 			else{
 				cout<<"Interseção do tipo / (invertida)"<<endl;
