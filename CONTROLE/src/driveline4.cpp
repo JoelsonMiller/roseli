@@ -58,7 +58,7 @@ void odom_move(float mag, int tipo_movimento){
         //Continua o programa apenas quando as variaveis angulo e distanica
         // forem resetadas
 	if(tipo_movimento == 0){ // 0 == distância e 1 == angulo
-                while(distancia < mag){
+                while(distancia <= mag){
                 	move(0.07, 0);
                 }
 
@@ -66,8 +66,8 @@ void odom_move(float mag, int tipo_movimento){
                 move(0,0);
 	}
 	else if (tipo_movimento == 1){
-		while(angulo < mag){
-                        move(0.0, 0.07);
+		while(angulo <= mag){
+                        move(0, 0.07);
                 }
 
                 cout<<"I reached the goal (angulo)"<<endl;
