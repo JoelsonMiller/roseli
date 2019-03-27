@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include "ros/ros.h"
 #include "std_msgs/String.h"
@@ -11,7 +12,7 @@
 
 ros::Duration d(0.01);
 int fd;
-using namespace ecl, std;
+using namespace ecl;
 float wheel_distance = 0.25;
 float wheel_radius = 0.05;
 Mutex mutex;
@@ -33,16 +34,16 @@ public:
 		d.sleep();
 	}
 
-	float calculate_body_turn_radius(float linear_speed, d angular_speed){
+	float calculate_body_turn_radius(float linear_speed, float angular_speed){
 		float body_turn_radius;
-		if((angular_speed >= 0.0) && (angular_speed) < 0.02)
+		if((angular_speed < 0.02)&&(angular_speed > -0.02))
 			body_turn_radius = 0.0;
 		else
 			body_turn_radius = linear_speed/angular_speed;
 		return body_turn_radius;
 	}
 
-	float calculate_wheel_turn_radius(float body_turn_radius, float angular_speed, const string& wheel){
+	float calculate_wheel_turn_radius(float body_turn_radius, float angular_speed, const std::string& wheel){
 
 		float wheel_sign;
 		float wheel_turn_radius;
@@ -52,6 +53,20 @@ public:
 			else if (wheel == "left")
 				wheel_sign = -1.0;
 			wheel_turn_radius = body_turn_radius+(wheel_sign*(wheel_distance/2));
+		}
+		else if(angular_speed != 0){
+			if(angular_speed > 0){
+				if(wheel == "right")
+					wheel_turn_radius = 1;
+				else
+					wheel_turn_radius = 0;
+			}
+			else if(angular_speed < 0){
+				if(wheel == "left")
+					wheel_turn_radius = 1;
+				else
+					wheel_turn_radius = 0;
+				}
 		}
 		else
 			wheel_turn_radius = 0;
@@ -65,52 +80,44 @@ public:
 		if (wheel_turn_radius != 0)
 			wheel_rpm = (angular_speed*wheel_turn_radius)/wheel_radius;
 		else
-			if((linear_speed >= 0)&&(linear_speed < 0.02))
+			if((linear_speed < 0.02)&&(linear_speed > -0.02))
 				wheel_rpm = 0;
 			else
-				wheel_rpm = linear_speed/wheel_radius;
-		return whee_rpm;
+				wheel_rpm = linear_speed / wheel_radius;
+		return wheel_rpm;
 
 	}
 
 	void move(const geometry_msgs::Twist::ConstPtr& msg)
 	{
 
-		float body_turn_radius, right_wheel_turn_radius, left_wheel_turn_radius;
-		string = wheel;
+		float body_turn_radius, right_wheel_turn_radius, left_wheel_turn_radius, left_wheel_rpm, right_wheel_rpm;
+		std::string wheel;
 
 		ROS_INFO ("Velocidade: linear.x=%f e angular.z=%f", msg->linear.x, msg->angular.z);
 		body_turn_radius = calculate_body_turn_radius(msg->linear.x, msg->angular.z);
 
 		wheel = "right";
-		right_wheel_turn_radius = calculate_wheel_turn_radius(body_turn_radius, angular_speed, wheel);
+		right_wheel_turn_radius = calculate_wheel_turn_radius(body_turn_radius, msg->angular.z, wheel);
 
 		wheel = "left";
-                left_wheel_turn_radius = calculate_wheel_turn_radius(body_turn_radius, angular_speed, wheel);
+                left_wheel_turn_radius = calculate_wheel_turn_radius(body_turn_radius, msg->angular.z, wheel);
 
 		right_wheel_rpm = calculate_wheel_rpm(msg->linear.x, msg->angular.z, right_wheel_turn_radius);
 		left_wheel_rpm = calculate_wheel_rpm(msg->linear.x, msg->angular.z, left_wheel_turn_radius);
 
-		if((msg->angular.z < 0.05)&&(msg->angular.z>=0)&&(msg->linear.x < 0.05)&&(msg->linear.x>=0)){
-			mutex.lock();
+		right_wheel_rpm = right_wheel_rpm*128/170;
+		left_wheel_rpm = left_wheel_rpm*128/170;
+
+		if((right_wheel_rpm == 0) && (left_wheel_rpm == 0))
 			stopmotors(fd);
-			mutex.unlock();
-		}
-		else if((msg->angular.z < 0.05)&&(msg->angular.z>=0) ){
-        		mutex.lock();
-			drivemotors(msg->linear.x*20, msg->linear.x*20, fd);
-			mutex.unlock();
-		}
-		else if((msg->linear.x < 0.05)&&(msg->linear.x>=0)){
-			mutex.lock();
-			rotate(msg->angular.z*10, fd);
-			mutex.unlock();
-		}
-		else if(msg->linear.x*8.5 != msg->angular.z*5){
-			mutex.lock();
-			drivemotors(msg->linear.x*17, msg->angular.z*10, fd);
-			mutex.unlock();
-		}
+		else if(right_wheel_rpm == 0)
+			rotate(left_wheel_rpm, fd);
+		else if(left_wheel_rpm == 0)
+			rotate(right_wheel_rpm, fd);
+		else
+			drivemotors(right_wheel_rpm, left_wheel_rpm, fd);
+
 		d.sleep();
 	}
 
