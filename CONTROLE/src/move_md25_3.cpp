@@ -9,9 +9,10 @@
 #include "geometry_msgs/Pose2D.h"
 #include "std_msgs/Empty.h"
 #include <ecl/threads.hpp>
+#include <roseli/ResetEnc.h>
+#include <roseli/GetOdom.h>
 
 ros::Duration d(0.01);
-geometry_msgs::Pose2D odom;
 int fd;
 using namespace ecl;
 float wheel_distance = 0.25;
@@ -26,18 +27,10 @@ class Listener
 {
 public:
 
-	void server_reset_encoder(roseli::ResetEnc::Request &req, roseli::ResetEnc::Response &res){
-		//Reseta os enconders
-		mutex.lock();
-		resetencoders(fd);
-		mutex.unlock();
-		ROS_INFO("ENCODER RESETADO");
-		res.reseted = True
-	}
+	bool server_reset_encoder(roseli::ResetEnc::Request &req, roseli::ResetEnc::Response &res);
 	
-	void server_get_odom(){
+	bool server_get_odom(roseli::ResetEnc::Request &req, roseli::ResetEnc::Response &res);
 	
-	}
 	void reset_enc(const std_msgs::Empty::ConstPtr& msg){
 		//Reseta os enconders
 		mutex.lock();
@@ -137,6 +130,30 @@ public:
 
 };
 
+bool Listener::server_reset_encoder(roseli::ResetEnc::Request &req, roseli::ResetEnc::Response &res){
+		//Reseta os enconders
+		mutex.lock();
+		resetencoders(fd);
+		mutex.unlock();
+		ROS_INFO("ENCODER RESETADO");
+		res.reseted = true;
+		return true;
+	}
+	
+bool Listener::server_get_odom(roseli::GetOdom::Request &req, roseli::GetOdom::Response &res){
+		mutex.lock();
+		linear = readencoders(1, fd);
+		mutex.unlock();
+		mutex.lock();
+		angular = readencodersang(1, fd);
+		mutex.unlock();
+
+		res.dist.x = linear;
+		res.dist.y = 0;
+		res.dist.theta = angular;
+		return true;
+	}
+
 int main (int argc, char **argv)
 {
 
@@ -147,15 +164,16 @@ int main (int argc, char **argv)
 	ros::Subscriber sub1 = n.subscribe("cmd_vel", 1, &Listener::move, &l);
 	ros::Subscriber sub2 = n.subscribe("/reset_enc", 1, &Listener::reset_enc, &l);
 	ros::Publisher pub = n.advertise<geometry_msgs::Pose2D>("/odom", 1);
-	ros::ServiceServer odom_server = n.advertiseServer("/odom_server", );
-	ros::ServiceServer reset_enc_server = n.advertiseServer("/reset_enc_server", );
+	ros::ServiceServer odom_server = n.advertiseServer("/odom_server", &Listener::server_get_odom, &l);
+	ros::ServiceServer reset_enc_server = n.advertiseServer("/reset_enc_server", &Listener::server_reset_enconder, &l);
 	
 	ros::AsyncSpinner s(2);
 	s.start();
 
 	ros::Rate r(1);
 	ros::spinOnce();
-
+	
+	geometry_msgs::Pose2D odom;
 	float linear;
 	float angular;
 
@@ -169,6 +187,7 @@ int main (int argc, char **argv)
 		mutex.unlock();
 
 		odom.x = linear;
+		odom.y = 0;
 		odom.theta = angular;
 		pub.publish(odom);
 		r.sleep();
