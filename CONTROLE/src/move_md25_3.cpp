@@ -26,8 +26,13 @@ class Listener
 {
 public:
 
-	void server_reset_encoder(){
-		
+	void server_reset_encoder(roseli::ResetEnc::Request &req, roseli::ResetEnc::Response &res){
+		//Reseta os enconders
+		mutex.lock();
+		resetencoders(fd);
+		mutex.unlock();
+		ROS_INFO("ENCODER RESETADO");
+		res.reseted = True
 	}
 	
 	void server_get_odom(){
