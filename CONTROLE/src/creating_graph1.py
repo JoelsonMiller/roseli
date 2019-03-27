@@ -20,8 +20,14 @@ class subscriber_graph_map:
 		test_node = False
 		non = self.G.number_of_nodes()
 
+		#Verifica se o nó já existe
+		
 		for node in range(non):
-			pose = nx.get_node_attributes(G, 'pos_graph')
+			if all(x == float('inf') for x in (data.pose2d.x, data.pose2d.y, data.pose2d.theta)):
+				print ("Adicionar uma interseção")
+				request = 0
+				return CreateMapResponse(request)
+			pose = nx.get_node_attributes(G, 'pose_graph')
 			if( data.pose2d.x == pose.x[node] and data.pose2d.y == pose.y[node] and data.pose2d.theta == pose.theta[node]):
 				test_node = True
 				break
