@@ -11,6 +11,7 @@
 #include <ecl/threads.hpp>
 
 ros::Duration d(0.01);
+geometry_msgs::Pose2D odom;
 int fd;
 using namespace ecl;
 float wheel_distance = 0.25;
@@ -25,6 +26,13 @@ class Listener
 {
 public:
 
+	void server_reset_encoder(){
+		
+	}
+	
+	void server_get_odom(){
+	
+	}
 	void reset_enc(const std_msgs::Empty::ConstPtr& msg){
 		//Reseta os enconders
 		mutex.lock();
@@ -134,14 +142,15 @@ int main (int argc, char **argv)
 	ros::Subscriber sub1 = n.subscribe("cmd_vel", 1, &Listener::move, &l);
 	ros::Subscriber sub2 = n.subscribe("/reset_enc", 1, &Listener::reset_enc, &l);
 	ros::Publisher pub = n.advertise<geometry_msgs::Pose2D>("/odom", 1);
-
+	ros::ServiceServer odom_server = n.advertiseServer("/odom_server", );
+	ros::ServiceServer reset_enc_server = n.advertiseServer("/reset_enc_server", );
+	
 	ros::AsyncSpinner s(2);
 	s.start();
 
 	ros::Rate r(1);
 	ros::spinOnce();
 
-	geometry_msgs::Pose2D odom;
 	float linear;
 	float angular;
 
