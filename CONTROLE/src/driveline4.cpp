@@ -191,9 +191,10 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				move(0,0);
 				usleep(1000000);
 				
-				cm.pose2d.x =
-				cm.pose2d.y =
-				cm.pose2d.theta =
+				cm.request.pose2d.x = std::numeric_limits<double>::infinity();
+				cm.request.pose2d.y = std::numeric_limits<double>::infinity();
+				cm.rquest.pose2d.theta = std::numeric_limits<double>::infinity();
+				
 				
 				odom_move(14, 0);
 				odom_move(80, 1);
@@ -227,7 +228,7 @@ int main(int argc, char** argv){
 	ros::Subscriber sub_control = node.subscribe("/control_effort", 1, &Listener::receive_data_control, &l);
 	node.getParam("/raspicam_node/width", width);
 	node.getParam("/raspicam_node/height", height);
-	client = node.serviceClient<roseli::CreateMap>("pose2d");
+	client = node.serviceClient<roseli::CreateMap>("/pose2d");
 	ros::AsyncSpinner s(2);
 	s.start();
 
