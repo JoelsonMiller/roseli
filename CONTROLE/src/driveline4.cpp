@@ -19,6 +19,7 @@ ros::Publisher pub_vel;
 ros::Publisher pub_enc;
 ros::Publisher pub_state;
 ros::Publisher pub_setpoint;
+ros::ServiceClient client;
 void move(float, float);
 ros::Duration d(0.01);
 float distancia=0;
@@ -88,6 +89,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 	float ang, down, center, adj, opt, adj_major, opt_major;
 	std_msgs::Float64 erro;
         std_msgs::Float64 setpoint;
+	roseli::CreateMap = cm;
 	ros::Rate rate(0.5);
 	ros::Rate later(0.2);
 
@@ -186,8 +188,13 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				ang = atan(opt/adj)*180/PI;
 				//adj_major = opt_major/tan(ang*PI/180);
 				ROS_INFO("O angulo da curva :%f e o valor de distancia: %f", ang, adj_major);
-				usleep(1000000);
 				move(0,0);
+				usleep(1000000);
+				
+				cm.pose2d.x =
+				cm.pose2d.y =
+				cm.pose2d.theta =
+				
 				odom_move(14, 0);
 				odom_move(80, 1);
 			}
@@ -220,6 +227,7 @@ int main(int argc, char** argv){
 	ros::Subscriber sub_control = node.subscribe("/control_effort", 1, &Listener::receive_data_control, &l);
 	node.getParam("/raspicam_node/width", width);
 	node.getParam("/raspicam_node/height", height);
+	client = node.serviceClient<roseli::CreateMap>("pose2d");
 	ros::AsyncSpinner s(2);
 	s.start();
 
