@@ -203,10 +203,12 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				if(res < 0){
 					move(0, 0);
 					cout<<"Interseção tipo: -|"<<endl;
+					odom_move(3, 0);
 				}
 				else{
 					move(0,0);
 					cout<<"Interseção tipo:|-"<<endl;
+					odom_move(3,0);
 				}
 			}
 			else if(points->points_up.size() == 4){
@@ -230,7 +232,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				cout<<"Interseção tipo: +"<<endl;
 				move(0,0);
 				usleep(1000000);
-				odom_move(5, 0);
+				odom_move(3, 0);
 			}
 		}
 		else{
@@ -280,7 +282,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				ROS_INFO("O angulo da curva :%f e o valor de distancia: %f", ang, adj_major);
 				move(0,0);
 				usleep(1000000);
-
+				
 				cm.request.pose2d.x = std::numeric_limits<double>::infinity();
 				cm.request.pose2d.y = std::numeric_limits<double>::infinity();
 				cm.request.pose2d.theta = std::numeric_limits<double>::infinity();
@@ -309,7 +311,6 @@ void move(float x, float z){
 	velocity.angular.z = z;
 	pub_vel.publish(velocity);
 }
-
 
 int main(int argc, char** argv){
 
