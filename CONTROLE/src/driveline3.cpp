@@ -42,6 +42,39 @@ void read_encoder(const geometry_msgs::Pose2D::ConstPtr& msg){
 	d.sleep();
 }
 
+void odom_move(float mag, int tipo_movimento){
+
+	pub_enc.publish(reset);
+
+        while(1){
+        	if((angulo != 0)&&(distancia != 0)){
+                	cout<<"Resetando"<<endl;
+                       	pub_enc.publish(reset);
+                }
+                else
+                     break;
+                usleep(1000000);
+        }
+        //Continua o programa apenas quando as variaveis angulo e distanica
+        // forem resetadas
+	if(tipo_movimento == 0){ // 0 == distância e 1 == angulo
+                while(distancia < mag){
+                	move(0.07, 0);
+                }
+
+                cout<<"I reached the goal (distance)"<<endl;
+                move(0,0);
+	}
+	else if (tipo_movimento == 1){
+		while(angulo < mag){
+                        move(0.0, 0.07);
+                }
+
+                cout<<"I reached the goal (angulo)"<<endl;
+                move(0,0);
+	}
+}
+
 void points_sub(const roseli::PointVector::ConstPtr& points){
 
 	double rightside = 0;
@@ -139,47 +172,9 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				//adj_major = opt_major/tan(ang*PI/180);
 				ROS_INFO("O angulo da curva :%f e o valor de distancia: %f", ang, adj_major);
 				usleep(1000000);
-				pub_enc.publish(reset);
-
-				while(1){
-					if((angulo != 0)&&(distancia != 0)){
-						cout<<"Resetando"<<endl;
-						pub_enc.publish(reset);
-					}
-					else
-						break;
-					usleep(1000000);
-				}
-	//Continua o programa apenas quando as variaveis angulo e distanica
-	// forem resetadas
-				while(distancia < 14){
-					move(0.07, 0);
-				}
-
-				cout<<"I reached the goal (distance)"<<endl;
 				move(0,0);
-                                pub_enc.publish(reset);
-
-				while(1){
-                                        if((angulo!=0)&&(distancia!=0)){
-                                                cout<<"Resetando"<<endl;
-						pub_enc.publish(reset);
-					}
-                                        else
-						break;
-					usleep(1000000);
-                                }
-
-        //Continua o programa apenas quando as variaveis angulo e distanica
-        // forem resetadas
-
-                                while(angulo < 80){
-                                        move(0, 0.07);
-                                }
-
-				cout<<"I reached the goal (angulo)"<<endl;
-				usleep(1000);
-				move(0,0);
+				odom_move(14, 0);
+				odom_move(80, 1);
 			}
 	}
 }

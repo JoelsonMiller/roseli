@@ -10,7 +10,7 @@ import pytesseract as ocr
 from PIL import Image as imagePil
 import os
 import time
-from roseli.srv import CreateMap, CreateMapResponse
+from roseli.srv import CreateMap, CreateMapRequest
 
 class ReadTag:
 
@@ -25,11 +25,13 @@ class ReadTag:
 		self.rate = rospy.Rate(1)
 
 	def creating_map_client(self, pose2d, ip):
-		rospy.wait_for_service('pose2d')
+
+		rospy.wait_for_service('/pose2D')
+
 		try:
-			create_map = rospy.ServiceProxy('pose2d', CreateMap)
-			resp = create_map(pose2d, ip)
-			return resp.intr_pnt_brd
+			create_map = rospy.ServiceProxy('/pose2D', CreateMap)
+			resp = CreateMapRequest(pose2d, ip)
+			return create_map(resp)
 		except rospy.ServiceException, e:
 			print "Service call failed: %s"%e
 
@@ -43,7 +45,7 @@ class ReadTag:
 		except cv_bridge.CvBridgeError as e:
 			print ("Error: Imagem da Tag nao recebida")
 			print(e)
-		lowerBound=np.array([40, 0, 0]) #lower boundary of the HSV image
+		lowerBound=np.array([30, 0, 0]) #lower boundary of the HSV image
 		upperBound=np.array([155, 60, 30]) #Upper boundary of the HSV image
 		#img_HSV=cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 		imgThresholder=cv2.inRange(img,lowerBound,upperBound,1)
@@ -60,22 +62,21 @@ class ReadTag:
 		os.remove(filename)
 		print(text)
 		separated= text.split(' ')
-		self._pose2d_.x = separated[0]
-		self._pose2d_.y = separated[1]
-		self._pose2d_.theta = separated[2]
-		_resp_ = self.creating_map_client(self._pose2d_, 0)
-		if text:
+
+		if (not len(separated) == 3):
+			print("It doesn't read a tag!")
+			return
+		else:
+			self._pose2d_.x = float(separated[0])
+			self._pose2d_.y = float(separated[1])
+			self._pose2d_.theta = float(separated[2])
+			_resp_ = self.creating_map_client(self._pose2d_, 0)
+
 			self.twist.linear.x = 0.4
 			self.twist.angular.z = 0
 			for x in range(0, 10):
 				self.cmd_vel_pub.publish(self.twist)
 				time.sleep(0.5)
-#			self.twist.linear.x=0
-#			self.twist.angular.z=0
-#			self.string.data = "map"
-#			self.pose_pub.publish(self.string)
-		else:
-			print ("It doesn't read a tag!")
 
 rospy.init_node('readtag')
 readtag = ReadTag()

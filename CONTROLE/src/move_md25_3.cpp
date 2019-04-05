@@ -28,9 +28,7 @@ class Listener
 public:
 
 	bool server_reset_encoder(roseli::ResetEnc::Request &req, roseli::ResetEnc::Response &res);
-	
 	bool server_get_odom(roseli::ResetEnc::Request &req, roseli::ResetEnc::Response &res);
-	
 	void reset_enc(const std_msgs::Empty::ConstPtr& msg){
 		//Reseta os enconders
 		mutex.lock();
@@ -139,7 +137,7 @@ bool Listener::server_reset_encoder(roseli::ResetEnc::Request &req, roseli::Rese
 		res.reseted = true;
 		return true;
 	}
-	
+
 bool Listener::server_get_odom(roseli::GetOdom::Request &req, roseli::GetOdom::Response &res){
 		mutex.lock();
 		linear = readencoders(1, fd);
@@ -166,13 +164,13 @@ int main (int argc, char **argv)
 	ros::Publisher pub = n.advertise<geometry_msgs::Pose2D>("/odom", 1);
 	ros::ServiceServer odom_server = n.advertiseServer("/odom_server", &Listener::server_get_odom, &l);
 	ros::ServiceServer reset_enc_server = n.advertiseServer("/reset_enc_server", &Listener::server_reset_enconder, &l);
-	
+
 	ros::AsyncSpinner s(2);
 	s.start();
 
 	ros::Rate r(1);
 	ros::spinOnce();
-	
+
 	geometry_msgs::Pose2D odom;
 	float linear;
 	float angular;

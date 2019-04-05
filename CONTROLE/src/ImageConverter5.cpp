@@ -70,7 +70,7 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 	cvtColor(img->image, imgGrayScaled, CV_RGB2GRAY);
 	//cvtColor(img->image, imgHSV, CV_BGR2HSV);
 
-	threshold( imgGrayScaled, imgThresholder, 10, 255, 1);
+	threshold( imgGrayScaled, imgThresholder, 2, 255, 1);
 	//inRange(imgHSV, Scalar(0, 0, 0), Scalar(110, 255, 30), imgThresholder);
 
 	//cout<<"Erro Threshold"<<endl;
@@ -205,14 +205,14 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 
 		//imshow(OPENCV_WINDOW, imgThresholder);
 		//waitKey('c');
-		imshow("Contours",drawingContours);
-		waitKey(1);
-		//imshow("CONTOURS AND FOUND POINTS", drawingContours);
-		//waitKey('c');
+		//imshow("Contours",drawingContours);
+		//waitKey(1);
+		imshow("CONTOURS AND FOUND POINTS", drawingContours);
+		waitKey('c');
 			if(p0.size()==0){
 				ros::Rate rate(0.4);
 				//cvtColor(img->image, image_HSV, CV_BGR2HSV);
-                        	inRange(img->image, Scalar(0,0,100), Scalar(35,20,220), imgThresholderTag);
+                        	inRange(img->image, Scalar(0, 0, 50), Scalar(35, 20, 220), imgThresholderTag);
 				//threshold( imgGrayScaled, imgThresholderTag, 100, 255, 4);
 				//Mat erode;
 				int centro_Tag;
@@ -232,7 +232,7 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 				findContours(imgThresholderTag, imgContoursTag, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
 
 				if(imgContoursTag.size()==0){
-					ROS_INFO("Tag Not Found!");
+					//ROS_INFO("Tag Not Found!");
 				}
 				else{
 					if(hierarchy.size() > 0){
