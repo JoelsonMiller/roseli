@@ -14,7 +14,7 @@ def listener():
 	rospy.init_node('led_strip', anonymous=True)
 	rospy.Subscriber("led", Empty, callback)
 
-	_state_ = rospy.get_param('~state_led')
+	_state_ = rospy.get_param('~state_led', "OFF")
 	GPIO.setmode(GPIO.BCM)
 	GPIO.setwarnings(False)
 	GPIO.setup(19,GPIO.OUT)
