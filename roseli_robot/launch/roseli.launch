@@ -1,0 +1,10 @@
+<launch>
+
+        <node pkg="roseli" type="move_md25_3" name="move_md25_3" output="screen"/>
+	<include file="$(find raspicam_node)/launch/camerav1_1280x720.launch"/>
+        <node pkg="roseli" type="led_on.py" name="led_state" output="screen">
+          <param name="state_led" value="ON"/>
+	</node>
+	<node pkg="roseli" type="hcsr04_server.py" name="sonar_hc_sr04_server" output="screen"/>
+</launch>
+

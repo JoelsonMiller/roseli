@@ -1,0 +1,70 @@
+#include "ros/ros.h"
+#include "std_msgs/String.h"
+#include <boost/thread.hpp>
+#include "std_msgs/Int32.h"
+#include "geometry_msgs/Twist.h"
+
+/**
+ * This tutorial demonstrates simple receipt of messages over the ROS system, using
+ * an asynchronous Spinner object to receive callbacks in multiple threads at the same time.
+ */
+
+ros::Duration d(0.01);
+geometry_msgs::Twist send;
+ros::Publisher pub;
+int valor = 0;
+
+class Listener
+{
+public:
+  void odometry(const std_msgs::Int32::ConstPtr& msg)
+  {
+   // ROS_INFO_STREAM("chatter1: [" << msg->data << "] [thread=" << boost::this_thread::get_id() << "]");
+   	//valor = msg->data;
+	 d.sleep();
+  }
+  void driveline(const std_msgs::String::ConstPtr& msg)
+  {
+    //ROS_INFO_STREAM("chatter2: [" << msg->data << "] [thread=" << boost::this_thread::get_id() << "]");
+    	if(msg->data=="start"){
+                while(valor < 10){
+                        send.angular.z = valor*2;
+                        pub.publish(send);
+                }
+        }
+
+	d.sleep();
+  }
+};
+
+
+int main(int argc, char **argv)
+{
+  ros::init(argc, argv, "listener");
+  ros::NodeHandle n;
+
+  pub = n.advertise<geometry_msgs::Twist>("/cmd", 1);
+  Listener l;
+  ros::Subscriber sub1 = n.subscribe("/odom", 10, &Listener::odometry, &l);
+  ros::Subscriber sub2 = n.subscribe("/chatter", 10, &Listener::driveline, &l);
+  //ros::Subscriber sub3 = n.subscribe("chatter", 10, &Listener::chatter3, &l);
+  //ros::Subscriber sub4 = n.subscribe("chatter", 10, chatter4);
+
+  /**
+   * The AsyncSpinner object allows you to specify a number of threads to use
+   * to call callbacks.  If no explicit # is specified, it will use the # of hardware
+   * threads available on your system.  Here we explicitly specify 4 threads.
+   */
+  ros::AsyncSpinner s(4);
+  s.start();
+
+  ros::Rate r(5);
+  while (ros::ok())
+  {
+    ROS_INFO_STREAM("Main thread [" << boost::this_thread::get_id() << "].");
+    r.sleep();
+  }
+
+  return 0;
+}
+
