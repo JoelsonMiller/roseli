@@ -27,9 +27,6 @@ class Listener
 {
 public:
 
-	//bool server_reset_encoder(roseli::ResetEnc::Request &req, roseli::ResetEnc::Response &res);
-	//bool server_get_odom(roseli::ResetEnc::Request &req, roseli::ResetEnc::Response &res);
-
 	void reset_enc(const std_msgs::Empty::ConstPtr& msg){
 		//Reseta os enconders
 		mutex.lock();
@@ -157,42 +154,56 @@ bool server_get_odom(roseli::GetOdom::Request &req, roseli::GetOdom::Response &r
 
 int main (int argc, char **argv)
 {
-
+	std::String s_odom;
+	std::String s_reset;
 	ros::init(argc, argv, "forward");
 	ros::NodeHandle n;
+	n.param("get_odom_stream", s_odom, "odom");
+	n.param("reset_enc_stream", s_reset, "odom");
 	fd = open_i2c_bus();
 	Listener l;
 	ros::Subscriber sub1 = n.subscribe("cmd_vel", 1, &Listener::move, &l);
-	ros::Subscriber sub2 = n.subscribe("/reset_enc", 1, &Listener::reset_enc, &l);
-	ros::Publisher pub = n.advertise<geometry_msgs::Pose2D>("/odom", 1);
-	ros::ServiceServer odom_server = n.advertiseService("/odom_server", server_get_odom);
-	ros::ServiceServer reset_enc_server = n.advertiseService("/reset_enc_server", server_reset_enconder);
-
+	
+	
+	if(s_odom == "odom")
+		ros::Publisher pub = n.advertise<geometry_msgs::Pose2D>("/odom", 1);
+	else if(s_dom == "server")
+		ros::ServiceServer odom_server = n.advertiseService("/odom_server", server_get_odom);
+	else
+		ROS_INFO("Parameters 'get_odom_stream' has invalid input");
+	
+	if(s_reset == "odom")
+		ros::Subscriber sub2 = n.subscribe("/reset_enc", 1, &Listener::reset_enc, &l);
+	else if(s_reset == "server")
+		ros::ServiceServer reset_enc_server = n.advertiseService("/reset_enc_server", server_reset_enconder);
+	else
+		ROS_INFO("Parameters 'reset_enc_stream' has invalid input");
+	
 	ros::AsyncSpinner s(2);
 	s.start();
 
 	ros::Rate r(5);
 	ros::spinOnce();
 
-	geometry_msgs::Pose2D odom;
-	float linear;
-	float angular;
+	if(s_odom == "odom"){
+		geometry_msgs::Pose2D odom;
+		float linear;
+		float angular;
 
-	while(ros::ok()){
+		while(ros::ok()){
+			mutex.lock();
+			linear = readencoders(1, fd);
+			mutex.unlock();
+			mutex.lock();
+			angular = readencodersang(1, fd);
+			mutex.unlock();
 
-		mutex.lock();
-		linear = readencoders(1, fd);
-		mutex.unlock();
-		mutex.lock();
-		angular = readencodersang(1, fd);
-		mutex.unlock();
+			odom.x = linear;
+			odom.y = 0;
+			odom.theta = angular;
+			pub.publish(odom);
+			r.sleep();
 
-		odom.x = linear;
-		odom.y = 0;
-		odom.theta = angular;
-		pub.publish(odom);
-		r.sleep();
-
+		}
 	}
-
 }
