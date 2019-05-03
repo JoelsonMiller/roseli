@@ -18,18 +18,18 @@ using namespace std;
 
 void locatepoints(const cv_bridge::CvImagePtr , image_transport::Publisher, ros::Publisher);
 
-//static const std::string OPENCV_WINDOW = "Image window";
+static const std::string OPENCV_WINDOW = "Image window";
 
   ImageConverter::ImageConverter()
 		: imageTransport(nh){
   		imageSubscriber = imageTransport.subscribe("/raspicam_node/image", 1, &ImageConverter::imageCallback, this);
 		imagePublisher = imageTransport.advertise("cropTag", 1);
     		pub_points = nh.advertise<roseli::PointVector>("line/points", 1);
-		//namedWindow(OPENCV_WINDOW);
+		namedWindow(OPENCV_WINDOW);
 		}
 
   	ImageConverter::~ImageConverter(){
- 	  	//destroyWindow(OPENCV_WINDOW);
+ 	  	destroyWindow(OPENCV_WINDOW);
  	}
 
 void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg)
@@ -47,10 +47,9 @@ void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg)
       			ROS_ERROR("cv_bridge exception: %s", e.what());
       			return;
     		}
-
-//	cv::imshow(OPENCV_WINDOW, img->image);
-//        cv::waitKey(3);
 	locatepoints(img, imagePublisher, pub_points);
+    	//cv::imshow(OPENCV_WINDOW, img->image);
+   	//cv::waitKey(3);
   }
 
 void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher imagePublisher, ros::Publisher pub_points ){
@@ -63,8 +62,8 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 	cvtColor(img->image, imgGrayScaled, CV_RGB2GRAY);
 	//cvtColor(img->image, imgHSV, CV_BGR2HSV);
 
-	threshold( imgGrayScaled, imgThresholder, 40, 255, 1);
-	//inRange(imgHSV, Scalar(0, 0, 0), Scalar(110, 255, 30), imgThresholder);
+	threshold( imgGrayScaled, imgThresholder, 10, 255, 1);
+	//inRange(img->image, Scalar(0, 0, 30), Scalar(60, 40 , 150), imgThresholder);
 
 	//cout<<"Erro Threshold"<<endl;
 	//find the contours in the image
@@ -72,11 +71,10 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 	//cout<<"Erro FindContours"<<endl;
 	//variable to receive the approximated contours
 	//cout<<"contour size   "<<imgContours.size()<<endl;
-	//imshow("Teste_threshold", imgThresholder);
-        //waitKey(5);
+	imshow("Teste_threshold", imgThresholder);
+        waitKey(5);
 	//imshow("Teste_GrayScaled", imgGrayScaled);
 	//waitKey(3);
-
 	Mat drawingContours = Mat::zeros(imgThresholder.size(), CV_8UC3);
 
 	if(imgContours.size()!=0){
@@ -174,16 +172,16 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 		//imshow(OPENCV_WINDOW, imgThresholder);
 		//waitKey('c');
 		//imshow("Contours",drawingContours);
-	 	//waitKey(1);
-		//imshow("CONTOURS AND FOUND POINTS", drawingContours);
-		//waitKey('c');
+		//waitKey(1);
+		imshow("CONTOURS AND FOUND POINTS", drawingContours);
+		waitKey('c');
 			if(p0.size()==0){
 				ros::Rate rate(0.4);
 				//cvtColor(img->image, image_HSV, CV_BGR2HSV);
-                        	inRange(img->image, Scalar(0,0,100), Scalar(35,15,220), imgThresholderTag);
-				//threshold( imgGrayScaled, imgThresholderTag, 100, 255, 4);
+                        	inRange(img->image, Scalar(0,0,30), Scalar(60,40,150), imgThresholderTag);
+			//	threshold( imgGrayScaled, imgThresholderTag, 100, 255, 4);
 				findContours(imgThresholderTag, imgContoursTag, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
-				//imshow( "ThresholderTag", imgThresholderTag);
+				//imshow( "Real image", img->image);
 	                        //waitKey('c');
 				//ROS_INFO("Problem about finding contours");
 				if(imgContoursTag.size()==0){
@@ -208,12 +206,12 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
                         			approxPolyDP(Mat(imgContoursTag[i]), imgContoursTagPoly[i], 3,true);
                 			}
 					drawContours(drawingContoursTag, imgContoursTagPoly, -1 , Scalar(255,0,0),1);
-					boundRect.height = boundRect.height/2;
+					boundRect.height = boundRect.height;
 					Mat cropImage = img->image(boundRect);
 					//imshow( "Contours",drawingContoursTag);
 					//waitKey('v');
-					//imshow("Imagem cortada", cropImage);
-					//waitKey('r');
+					imshow("Imagem cortada", cropImage);
+					waitKey('r');
 					img->image = cropImage;
 					imagePublisher.publish(img->toImageMsg());
 					rate.sleep();
@@ -223,6 +221,7 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 		}
 		else{
 			//cout<<"NO FOUND CONTOURS"<<endl;
-		}
-}
 
+		}
+
+}

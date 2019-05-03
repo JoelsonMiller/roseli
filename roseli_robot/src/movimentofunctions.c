@@ -107,12 +107,12 @@ void drivemotors(int speed1, int speed2){
 	//define a placa MD25 como slave
 	ioctl(fd, I2C_SLAVE, ADDRESS1);
 
-	/*buf[0]=16;
-        buf[1]=50;
+		buf[0]=16;
+                buf[1]=51;
         if((write(fd,buf,2))!=2){
                         printf("drivemotor: Error writing to i2c slave\n");
                         exit(1);
-                }*/
+                }
 
 	//entra em dois casos, quando as velocidades são iguais utiliza o modo 2 e quando são diferentes utiliza o modo 1
 
@@ -170,13 +170,6 @@ void stopmotors(void){
 	}
 	//define a placa MD25 como escravo
 	ioctl(fd,I2C_SLAVE,ADDRESS1);
-	/*buf[0]=16;
-        buf[1]=50;
-        if((write(fd,buf,2))!=2){
-                        printf("drivemotor: Error writing to i2c slave\n");
-                        exit(1);
-                }*/
-
 	//escreve o valor 0 no registrador 15
 	buf[0] = 15;
 	buf[1] = 0;
@@ -207,14 +200,22 @@ void stopmotors(void){
 //Função criada para rotacionar o robô em torno do proprio eixo
 void rotate(int speed){
 	//abre a porta i2c
-	if ((fd = open(fileName, O_RDWR))<0){
-		printf("rotate: Failed to open i2c port\n");
-		exit(1);
-	}
+	//if ((fd = open(fileName, O_RDWR))<0){
+	//	printf("rotate: Failed to open i2c port\n");
+		//exit(1);
+	//}
 	//define a placa MD25 como escravo
 	ioctl(fd,I2C_SLAVE,ADDRESS1);
 
 	//escreve o valor 1 no registrador 15
+
+                buf[0]=16;
+                buf[1]=51;
+
+        if((write(fd,buf,2))!=2){
+                        printf("drivemotor: Error writing to i2c slave\n");
+                        exit(1);
+                }
 
 	buf[0] = 15;
 	buf[1] = 1;

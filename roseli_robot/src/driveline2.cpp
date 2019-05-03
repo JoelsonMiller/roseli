@@ -11,13 +11,12 @@
 
 using namespace std;
 geometry_msgs::Twist velocity;
-std_msgs::Empty reset;
 ros::Publisher pub_vel;
 ros::Publisher pub_enc;
 void move(float, float);
 ros::Duration d(0.01);
-float distancia=0;
-float angulo=0;
+float distancia;
+float angulo;
 
 class Listener
 {
@@ -40,7 +39,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 	if(points->points_center.size()!=0){
 
-		leftside = abs(points->points_center[0].x);
+		leftside = abs(0 - points->points_center[0].x);
 		rightside = abs(640 - points->points_center[1].x);
 		res = leftside-rightside;
 	}
@@ -80,7 +79,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 			}
 		}
 		else{
-			move(0.2, -res/500);
+			move(0.5, -res/400);
 		}
 
 	}else if(points->points_center.size()==4){
@@ -89,51 +88,30 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				move(0,0);
 			}
 			else{
+				cout<<"I am here"<<endl;
 				cout<<"Interseção do tipo / (invertida)"<<endl;
 				move(0,0);
+				std_msgs::Empty reset;
 				pub_enc.publish(reset);
 
-				while(1){
-					if((angulo != 0)&&(distancia != 0)){
-						cout<<"angulo = "<< angulo << endl;
-						cout<<"distancia = "<< distancia << endl;
-					}
-					else
-						break;
-					pub_enc.publish(reset);
-					usleep(1000000);
-				}
-	//Continua o programa apenas quando as variaveis angulo e distanica
-	// forem resetadas
-				while(distancia < 17){
-					move(0.2, 0);
-				}
+				while((angulo!=0)&&(distancia!=0))
+		//Apenas continua o programa quando as variaveis angulos e distancia forem resetadas
 
-				cout<<"I reached the goal (distance)"<<endl;
+				while(distancia < 30){
+					move(0.2, 0);
+					usleep(1000);
+				}
 				move(0,0);
                                 pub_enc.publish(reset);
 
-				while(1){
-                                        if((angulo!=0)&&(distancia!=0)){
-                                                cout<<"angulo = "<< angulo << endl;
-                                                cout<<"distancia = "<< distancia << endl;
-					}
-                                        else
-						break;
-					pub_enc.publish(reset);
-					usleep(1000000);
+				while((angulo!=0)&&(distancia!=0))
+                //Apenas continua o programa quando as variaveis angulos e distancia forem resetadas
+
+                                while(angulo < 90){
+                                        move(0,0.2);
+                                        usleep(1000);
                                 }
 
-        //Continua o programa apenas quando as variaveis angulo e distanica
-        // forem resetadas
-
-                                while(angulo < 75){
-                                        move(0, 0.2);
-                                }
-
-				cout<<"I reached the goal (angulo)"<<endl;
-				usleep(1000);
-				move(0,0);
 			}
 			//ROS_INFO("Pontos na imagem %lu", points->points_center.size() );
 			//move(0.25, 0);
@@ -148,10 +126,9 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 }
 
 };
-
 void move(float x, float z){
 
-	ros::Rate rate(1000);
+	ros::Rate rate(10000);
 	velocity.linear.x =  x;
 	velocity.angular.z = z;
 	pub_vel.publish(velocity);
@@ -164,10 +141,10 @@ int main(int argc, char** argv){
 	ros::init(argc, argv, "motor_move");
 	ros::NodeHandle node;
 	pub_vel = node.advertise<geometry_msgs::Twist>("cmd_vel" , 1);
-	pub_enc = node.advertise<std_msgs::Empty>("/reset_enc", 1);
+	pub_enc = node.advertise<std_msgs::Empty>("reset_enc", 1);
 	Listener l;
 	ros::Subscriber sub_points=node.subscribe("line/points", 1, &Listener::points_sub, &l);
-	ros::Subscriber sub_enc=node.subscribe("/odom", 1, &Listener::read_encoder, &l);
+	ros::Subscriber sub_enc=node.subscribe("/enconder", 1, &Listener::read_encoder, &l);
 
 	ros::AsyncSpinner s(2);
 	s.start();
