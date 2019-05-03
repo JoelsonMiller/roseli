@@ -62,34 +62,40 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 			}
 		}
 		else{
-			move(0.5, -res/400);
+			move(0.2, -res/500);
 		}
 
 	}else if(points->points_center.size()==4){
 			if(points->points_center[0].x < 50){
 				cout<<"Interseção do tipo /"<<endl;
-				move(0,0);
+				//move(0.2, 0);
+				//usleep(2000000);
+				move(0, 0);
+				//usleep(4000000);
 			}
 			else{
 				cout<<"I am here"<<endl;
 				cout<<"Interseção do tipo / (invertida)"<<endl;
 				move(0,0);
+				//usleep(5000000);
+				//move(0,0.2);
+				//usleep(5000000);
 			}
 			//ROS_INFO("Pontos na imagem %lu", points->points_center.size() );
 			//move(0.25, 0);
 			//rate.sleep();
 			//move(0, -0.85);
 			//rate.sleep();
-			//move(0.1 , 0);
-                        //rate.sleep();
-			//move(0 , 0);
-                        //pause.sleep();
+		//	move(0.1 , 0);
+                  //      rate.sleep();
+		//	move(0 , 0);
+                  //      pause.sleep();
 	}
 }
 
 void move(float x, float z){
 
-	ros::Rate rate(10000);
+	ros::Rate rate(1000);
 	velocity.linear.x =  x;
 	velocity.angular.z = z;
 	pub_vel.publish(velocity);
