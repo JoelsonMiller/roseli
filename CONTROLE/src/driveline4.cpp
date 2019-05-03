@@ -44,6 +44,20 @@ void receive_data_control(const std_msgs::Float64::ConstPtr& controller){
 	d.sleep();
 }
 
+void call_srv_map(void){
+
+	roseli::CreateMap cm;
+	cm.request.pose2d.x = std::numeric_limits<double>::infinity();
+        cm.request.pose2d.y = std::numeric_limits<double>::infinity();
+        cm.request.pose2d.theta = std::numeric_limits<double>::infinity();
+        if (client.call(cm)){
+        	cout<<"Intercao e: "<<cm.response.intr_pnt_graph<< endl;;
+        }
+        else{
+        	ROS_ERROR("Failed to call service CreateMap");
+                return;
+        }
+}
 
 /*void read_encoder(const geometry_msgs::Pose2D::ConstPtr& msg){
 	mutex.lock();
@@ -147,7 +161,20 @@ void odom_move(float mag, int tipo_movimento){
 		}
                 cout<<"I reached the goal (angulo)"<<endl;
                 move(0,0);
-		usleep(10000);
+		while(1){
+                	if( (angulo != 0) && (distancia != 0) ){
+                        	cout<<"Resetando"<<endl;
+                        	client2.call(getodom);
+                        	usleep(10000);
+                        	angulo = getodom.response.dist.theta;
+                        	distancia = getodom.response.dist.x;
+                	}
+                	else
+                     	break;
+                	usleep(10000);
+        	}
+
+
         }
 
 }
@@ -161,7 +188,6 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 	float ang, down, center, adj, opt, adj_major, opt_major;
 	std_msgs::Float64 erro;
         std_msgs::Float64 setpoint;
-	roseli::CreateMap cm;
 	ros::Rate rate(0.5);
 	ros::Rate later(0.2);
 
@@ -186,6 +212,9 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					cout<<"Angulo de -90 graus"<<endl;
 					move(0,0);
 					usleep(1000000);
+
+					call_srv_map(); //Call the creatinmap e insert a intersection node
+
 					odom_move(14, 0);
 					move(0,0);
 					odom_move(-90, 1);
@@ -195,6 +224,9 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					cout<<"Angulo de 90 graus"<<endl;
 					move(0, 0);
 					usleep(1000000);
+
+					call_srv_map(); //Call the creatinmap e insert a intersection node
+
 					odom_move(14, 0);
 					odom_move(90, 1);
 				}
@@ -203,12 +235,18 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				if(res < 0){
 					move(0, 0);
 					cout<<"Interseção tipo: -|"<<endl;
-					odom_move(3, 0);
+
+					call_srv_map(); //Call the creatinmap e insert a intersection node
+
+					odom_move(1, 0);
 				}
 				else{
 					move(0,0);
 					cout<<"Interseção tipo:|-"<<endl;
-					odom_move(3,0);
+
+					call_srv_map(); //Call the creatinmap e insert a intersection node
+
+					odom_move(1,0);
 				}
 			}
 			else if(points->points_up.size() == 4){
@@ -254,6 +292,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 			if(points->points_center[0].x < width/5){
 				cout<<"Interseção do tipo /"<<endl;
 				move(0,0);
+
 				adj = height/4;
 				down = points->points_down[1].x;
 				center = points->points_center[1].x;
@@ -262,7 +301,10 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				ang = atan(opt/adj)*180/PI;
 				//adj_major = opt_major/tan(ang*PI/180);
 				ROS_INFO("O angulo da curva :%f e o valor de distancia: %f", ang, adj_major);
-				usleep(1000000);
+				usleep(10000);
+
+				call_srv_map(); //Call the creatinmap e insert a intersection node
+
 				move(0,0);
 				odom_move(14, 0);
 				move(0,0);
@@ -282,18 +324,9 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				ROS_INFO("O angulo da curva :%f e o valor de distancia: %f", ang, adj_major);
 				move(0,0);
 				usleep(1000000);
-				
-				cm.request.pose2d.x = std::numeric_limits<double>::infinity();
-				cm.request.pose2d.y = std::numeric_limits<double>::infinity();
-				cm.request.pose2d.theta = std::numeric_limits<double>::infinity();
-				if (client.call(cm)){
-    					cout<<"Intercao e: "<<cm.response.intr_pnt_graph<< endl;;
-  				}
-  				else
-  				{
-    					ROS_ERROR("Failed to call service CreateMap");
-    					return;
-  				}
+
+				call_srv_map(); //Call the creatinmap e insert a intersection node
+
 				odom_move(14.0, 0);
 				move(0,0);
 				odom_move(80.0, 1);
@@ -326,7 +359,7 @@ int main(int argc, char** argv){
 	ros::Subscriber sub_control = node.subscribe("/control_effort", 1, &Listener::receive_data_control, &l);
 	node.getParam("/raspicam_node/width", width);
 	node.getParam("/raspicam_node/height", height);
-	client = node.serviceClient<roseli::CreateMap>("/pose2d");
+	client = node.serviceClient<roseli::CreateMap>("/pose2D");
 	client1 = node.serviceClient<roseli::ResetEnc>("/reset_enc_server");
 	client2 = node.serviceClient<roseli::GetOdom>("/odom_server");
 	ros::AsyncSpinner s(2);
@@ -339,3 +372,4 @@ int main(int argc, char** argv){
 	}
 	return 0;
 }
+
