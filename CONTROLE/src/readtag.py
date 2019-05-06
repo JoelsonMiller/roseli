@@ -45,19 +45,23 @@ class ReadTag:
 		except cv_bridge.CvBridgeError as e:
 			print ("Error: Imagem da Tag nao recebida")
 			print(e)
-		lowerBound=np.array([30, 0, 0]) #lower boundary of the HSV image
-		upperBound=np.array([155, 60, 30]) #Upper boundary of the HSV image
-		#img_HSV=cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
-		imgThresholder=cv2.inRange(img,lowerBound,upperBound,1)
+		lowerBound1=np.array([100, 150, 0]) #lower boundary of the HSV image
+		upperBound1=np.array([140, 255, 255]) #Upper boundary of the HSV image
+		#lowerBound2=np.array([160, 50, 50]) #lower boundary of the HSV image
+                #upperBound2=np.array([170, 255, 255]) #Upper boundary of the HSV image
+		img_HSV=cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+		imgThresholder=cv2.inRange(img_HSV,lowerBound1,upperBound1,1)
+		#imgThresholder2=cv2.inRange(img,lowerBound2,upperBound2,1)
+		#imgThresholder =  imgThresholder1|imgThresholder2
 		#cv2.imshow("picamera",img)
 		#cv2.waitKey(1)
-		kernel = np.ones((3, 3), np.uint8)
-		imgFilter=cv2.morphologyEx(imgThresholder, cv2.MORPH_OPEN, kernel)
+		#kernel = np.ones((2, 2), np.uint8)
+		#imgFilter=cv2.morphologyEx(imgThresholder, cv2.MORPH_OPEN, kernel)
 		#imgThresholder=cv2.adaptiveThreshold(imgThresholder, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-		cv2.imshow("window_tag", imgFilter)
+		cv2.imshow("window_tag", imgThresholder)
 		cv2.waitKey(3)
 		filename = "{}.png".format(os.getpid())
-		cv2.imwrite(filename, imgFilter)
+		cv2.imwrite(filename, imgThresholder)
 		text = ocr.image_to_string(imagePil.open(filename),config="-c tessedit_char_whitelist=1234567890.")
 		os.remove(filename)
 		print(text)

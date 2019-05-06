@@ -74,7 +74,7 @@ void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg){
 void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher imagePublisher, ros::Publisher pub_points, ros::Publisher pub_vel ){
 
 	vector< vector<Point> > imgContours, imgContoursTag;
-	Mat imgThresholder, imgThresholderTag, imgGrayScaled, image_HSV, imgHSV, erode_img, element1, element2;
+	Mat imgThresholder, imgThresholderTag, imgGrayScaled, image_HSV, image_HSV1, image_HSV2, imgHSV, erode_img, element1, element2;
 	vector<Vec3b> buf0;
 	vector<Vec3b> buf1;
 	vector<Vec3b> buf2;
@@ -84,8 +84,8 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 
 	threshold( imgGrayScaled, imgThresholder, min_value_line, max_value_line, 1);
 	//inRange(imgHSV, Scalar(0, 0, 0), Scalar(110, 255, 30), imgThresholder);
-	imshow("Teste_threshold", imgThresholder);
-        waitKey(5);
+	//imshow("Teste_threshold", imgThresholder);
+        //waitKey(5);
 	//cout<<"Erro Threshold"<<endl;
 	//find the contours in the image
 	findContours(imgThresholder, imgContours, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
@@ -218,17 +218,23 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 		//waitKey('c');
 		//imshow("Contours",drawingContours);
 		//waitKey(1);
-		imshow("CONTOURS AND FOUND POINTS", drawingContours);
-		waitKey('c');
+		//imshow("CONTOURS AND FOUND POINTS", drawingContours);
+		//waitKey('c');
 			if(p0.size()==0){
 				ros::Rate rate(0.4);
-				//cvtColor(img->image, image_HSV, CV_BGR2HSV);
-                        	inRange(img->image, Scalar(min_blue_frame, min_green_frame, min_red_frame), Scalar(max_blue_frame, max_green_frame, max_red_frame), imgThresholderTag);
+				cvtColor(img->image, image_HSV, CV_BGR2HSV);
+                        	//inRange(image_HSV, Scalar(min_blue_frame, min_green_frame, min_red_frame),
+				//		Scalar(max_blue_frame, max_green_frame, max_red_frame), imgThresholderTag);
+				inRange(image_HSV, Scalar(0, 100, 100),
+                                                Scalar(10, 255, 255), image_HSV1);
+				inRange(image_HSV, Scalar(160, 100, 100),
+                                                Scalar(180, 255, 255), image_HSV2);
+				imgThresholderTag = image_HSV1 | image_HSV2;
 				//threshold( imgGrayScaled, imgThresholderTag, 100, 255, 4);
 				//Mat erode;
 				int centro_Tag;
 				int erosion_type = MORPH_RECT;
-				int erosion_size = 1, dilate_size = 4;
+				int erosion_size = 1, dilate_size = 2;
 				element1 = getStructuringElement(erosion_type,
 						Size(2*erosion_size+1, 2*erosion_size+1),
 						Point(erosion_size, erosion_size));
