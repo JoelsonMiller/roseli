@@ -12,11 +12,15 @@
 #include "roseli/PointVector.h"
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Twist.h"
+#include <dynamic_reconfigure/server.h>
+#include <roseli/param_lineConfig.h>
 
 using namespace cv;
 using namespace std;
 int height;
 int width;
+int min_value, max_value;
+
 geometry_msgs::Twist velocity;
 
 void locatepoints(const cv_bridge::CvImagePtr , image_transport::Publisher, ros::Publisher, ros::Publisher);
@@ -32,23 +36,27 @@ static const std::string OPENCV_WINDOW = "Image window";
 		//namedWindow(OPENCV_WINDOW);
 		nh.param("/raspicam_node/height", height, 250);
 		nh.param("/raspicam_node/width", width, 350);
+		f = boost::bind(&ImageConverter::callback_reconfigure, this, _1, _2);
+		server.setCallback(f);
 		}
 
   	ImageConverter::~ImageConverter(){
  	  	//destroyWindow(OPENCV_WINDOW);
  	}
 
-void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg)
-  	{
+void ImageConverter::callback_reconfigure(roseli::param_lineConfig &config, uint32_t level){
+		min_value = config.min_value;
+		max_value = config.max_value;
+	}
+
+void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg){
     		cv_bridge::CvImagePtr img;
-    		try
-		{
+    		try{
 		//	ROS_INFO("Trying to convert");
       			img = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
     		//	ROS_INFO("Converted");
 		}
-    		catch (cv_bridge::Exception& e)
-    		{
+    		catch (cv_bridge::Exception& e){
 			ROS_INFO("Not Converter");
       			ROS_ERROR("cv_bridge exception: %s", e.what());
       			return;
@@ -70,17 +78,16 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 	cvtColor(img->image, imgGrayScaled, CV_RGB2GRAY);
 	//cvtColor(img->image, imgHSV, CV_BGR2HSV);
 
-	threshold( imgGrayScaled, imgThresholder, 2, 255, 1);
+	threshold( imgGrayScaled, imgThresholder, min_value, max_value, 1);
 	//inRange(imgHSV, Scalar(0, 0, 0), Scalar(110, 255, 30), imgThresholder);
-
+	imshow("Teste_threshold", imgThresholder);
+        waitKey(5);
 	//cout<<"Erro Threshold"<<endl;
 	//find the contours in the image
 	findContours(imgThresholder, imgContours, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
 	//cout<<"Erro FindContours"<<endl;
 	//variable to receive the approximated contours
 	//cout<<"contour size   "<<imgContours.size()<<endl;
-	imshow("Teste_threshold", imgThresholder);
-        waitKey(5);
 	//imshow("Teste_GrayScaled", imgGrayScaled);
 	//waitKey(3);
 

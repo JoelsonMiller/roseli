@@ -6,9 +6,9 @@
            <param name="upper_limit" value = "0.8" />
            <param name="lower_limit" value = "-0.8" />
 	</node>
-	<node pkg="roseli" type="imageprocessor5" name="imageprocessor5" output="screen"/>
+	<node pkg="roseli" type="imageprocessor6" name="imageprocessor6" output="screen"/>
 	<node pkg="roseli" type="motordrive3" name="motordrive3" output="screen"/>
 	<node pkg="image_transport" type="republish" name="republish" args="compressed in:=/raspicam_node/image raw out:=/raspicam_node/image" output="screen"/>
 	<node pkg="roseli" type="readtag.py" name="readtag" output="screen"/>
-        <node pkg="roseli" type="creating_graph.py" name="creating_map" output="screen"/>
+        <node pkg="roseli" type="creating_graph1.py" name="creating_map" output="screen"/>
 </launch>

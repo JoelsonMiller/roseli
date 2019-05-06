@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   cv_bridge
+  dynamic_reconfigure
 	)
 
 ## System dependencies are found with CMake's conventions
@@ -97,10 +98,10 @@ find_package(catkin REQUIRED COMPONENTS
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
+ generate_dynamic_reconfigure_options(
+   cfg/param_line.cfg
 #   cfg/DynReconf2.cfg
-# )
+ )
 
 ###################################
 ## catkin specific configuration ##
@@ -114,7 +115,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
   LIBRARIES roseli
-  CATKIN_DEPENDS cv_bridge image_transport roscpp rospy sensor_msgs std_msgs message_runtime geometry_msgs
+  CATKIN_DEPENDS cv_bridge image_transport roscpp rospy sensor_msgs std_msgs message_runtime geometry_msgs dynamic_reconfigure
 #  DEPENDS system_lib
 )
 
@@ -149,7 +150,7 @@ add_library(ImageConverter src/ImageConverter.h
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(forward src/forward.cpp)
  #add_executable(imageprocessor1 src/ImageConverter.cpp src/main.cpp)
- add_executable(imageprocessor5 src/ImageConverter5.cpp src/main.cpp)
+ add_executable(imageprocessor6 src/ImageConverter6.cpp src/main.cpp)
  #add_executable(motordrive1 src/driveline.cpp)
  add_executable(motordrive3 src/driveline3.cpp)
 
@@ -166,7 +167,7 @@ add_library(ImageConverter src/ImageConverter.h
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 #add_dependencies(imageprocessor1 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(imageprocessor5 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(imageprocessor6 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
 #add_dependencies(motordrive1 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(motordrive3 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
@@ -181,7 +182,7 @@ add_dependencies(motordrive3 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORT
  #  ${catkin_LIBRARIES}
   # ${OpenCV_LIBRARIES}
  #)
-target_link_libraries(imageprocessor5
+target_link_libraries(imageprocessor6
 	ImageConverter
    ${catkin_LIBRARIES}
    ${OpenCV_LIBRARIES}
