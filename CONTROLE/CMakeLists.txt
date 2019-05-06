@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   cv_bridge
   dynamic_reconfigure
+  ecl_threads
 	)
 
 ## System dependencies are found with CMake's conventions
@@ -115,7 +116,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
   LIBRARIES roseli
-  CATKIN_DEPENDS cv_bridge image_transport roscpp rospy sensor_msgs std_msgs message_runtime geometry_msgs dynamic_reconfigure
+  CATKIN_DEPENDS cv_bridge image_transport roscpp rospy sensor_msgs std_msgs message_runtime geometry_msgs dynamic_reconfigure ecl_threads
 #  DEPENDS system_lib
 )
 
@@ -152,7 +153,7 @@ add_library(ImageConverter src/ImageConverter.h
  #add_executable(imageprocessor1 src/ImageConverter.cpp src/main.cpp)
  add_executable(imageprocessor6 src/ImageConverter6.cpp src/main.cpp)
  #add_executable(motordrive1 src/driveline.cpp)
- add_executable(motordrive3 src/driveline3.cpp)
+ add_executable(motordrive src/driveline4.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -169,7 +170,7 @@ add_library(ImageConverter src/ImageConverter.h
 #add_dependencies(imageprocessor1 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(imageprocessor6 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
 #add_dependencies(motordrive1 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(motordrive3 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(motordrive ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(forward
@@ -192,7 +193,7 @@ target_link_libraries(imageprocessor6
  #  ${catkin_LIBRARIES}
  #)
 
-target_link_libraries(motordrive3
+target_link_libraries(motordrive
    ${catkin_LIBRARIES}
  )
 

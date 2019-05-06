@@ -357,8 +357,8 @@ int main(int argc, char** argv){
 	ros::Subscriber sub_points=node.subscribe("line/points", 1, &Listener::points_sub, &l);
 	//ros::Subscriber sub_enc=node.subscribe("/odom", 1, &Listener::read_encoder, &l);
 	ros::Subscriber sub_control = node.subscribe("/control_effort", 1, &Listener::receive_data_control, &l);
-	node.getParam("/raspicam_node/width", width);
-	node.getParam("/raspicam_node/height", height);
+	node.param("/raspicam_node/width", width, 250);
+	node.param("/raspicam_node/height", height, 350);
 	client = node.serviceClient<roseli::CreateMap>("/pose2D");
 	client1 = node.serviceClient<roseli::ResetEnc>("/reset_enc_server");
 	client2 = node.serviceClient<roseli::GetOdom>("/odom_server");

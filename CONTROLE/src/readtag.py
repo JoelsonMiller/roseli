@@ -51,7 +51,7 @@ class ReadTag:
 		imgThresholder=cv2.inRange(img,lowerBound,upperBound,1)
 		#cv2.imshow("picamera",img)
 		#cv2.waitKey(1)
-		kernel = np.ones((2.7,2.7), np.uint8)
+		kernel = np.ones((3, 3), np.uint8)
 		imgFilter=cv2.morphologyEx(imgThresholder, cv2.MORPH_OPEN, kernel)
 		#imgThresholder=cv2.adaptiveThreshold(imgThresholder, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
 		cv2.imshow("window_tag", imgFilter)

@@ -17,9 +17,7 @@
 
 using namespace cv;
 using namespace std;
-int height;
-int width;
-int min_value, max_value;
+int height, width, min_value_line, max_value_line, min_red_frame, min_blue_frame, min_green_frame, max_red_frame, max_blue_frame, max_green_frame;
 
 geometry_msgs::Twist velocity;
 
@@ -45,8 +43,14 @@ static const std::string OPENCV_WINDOW = "Image window";
  	}
 
 void ImageConverter::callback_reconfigure(roseli::param_lineConfig &config, uint32_t level){
-		min_value = config.min_value;
-		max_value = config.max_value;
+		min_value_line = config.min_value_line;
+		max_value_line = config.max_value_line;
+		min_red_frame = config.min_red_frame;
+		min_blue_frame = config.min_blue_frame;
+		min_green_frame = config.min_green_frame;
+		max_red_frame = config.max_red_frame;
+		max_blue_frame = config.max_blue_frame;
+		max_green_frame = config.max_green_frame;
 	}
 
 void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg){
@@ -62,8 +66,8 @@ void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg){
       			return;
     		}
 
-	//cv::imshow(OPENCV_WINDOW, img->image);
-        //cv::waitKey(3);
+	cv::imshow(OPENCV_WINDOW, img->image);
+        cv::waitKey(3);
 	locatepoints(img, imagePublisher, pub_points, pub_vel);
   }
 
@@ -78,7 +82,7 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 	cvtColor(img->image, imgGrayScaled, CV_RGB2GRAY);
 	//cvtColor(img->image, imgHSV, CV_BGR2HSV);
 
-	threshold( imgGrayScaled, imgThresholder, min_value, max_value, 1);
+	threshold( imgGrayScaled, imgThresholder, min_value_line, max_value_line, 1);
 	//inRange(imgHSV, Scalar(0, 0, 0), Scalar(110, 255, 30), imgThresholder);
 	imshow("Teste_threshold", imgThresholder);
         waitKey(5);
@@ -219,22 +223,22 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 			if(p0.size()==0){
 				ros::Rate rate(0.4);
 				//cvtColor(img->image, image_HSV, CV_BGR2HSV);
-                        	inRange(img->image, Scalar(0, 0, 50), Scalar(35, 20, 220), imgThresholderTag);
+                        	inRange(img->image, Scalar(min_blue_frame, min_green_frame, min_red_frame), Scalar(max_blue_frame, max_green_frame, max_red_frame), imgThresholderTag);
 				//threshold( imgGrayScaled, imgThresholderTag, 100, 255, 4);
 				//Mat erode;
 				int centro_Tag;
 				int erosion_type = MORPH_RECT;
 				int erosion_size = 1, dilate_size = 4;
-				element1 = getStructuringElement(erosion_type, 
-						Size(2*erosion_size+1, 2*erosion_size+1), 
+				element1 = getStructuringElement(erosion_type,
+						Size(2*erosion_size+1, 2*erosion_size+1),
 						Point(erosion_size, erosion_size));
 				erode(imgThresholderTag, erode_img, element1);
-				element2 = getStructuringElement(erosion_type, 
-                                                Size(2*dilate_size+1, 2*dilate_size+1), 
+				element2 = getStructuringElement(erosion_type,
+                                                Size(2*dilate_size+1, 2*dilate_size+1),
                                                 Point(dilate_size, dilate_size));
 				dilate(erode_img, imgThresholderTag, element2);
-				//imshow( "ThresholderTag", imgThresholderTag);
-	                        //waitKey('c');
+				imshow( "ThresholderTag", imgThresholderTag);
+	                        waitKey('c');
 
 				findContours(imgThresholderTag, imgContoursTag, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
 
