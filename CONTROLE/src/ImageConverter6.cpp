@@ -28,7 +28,7 @@ static const std::string OPENCV_WINDOW = "Image window";
   ImageConverter::ImageConverter()
 		: imageTransport(nh){
   		imageSubscriber = imageTransport.subscribe("/raspicam_node/image", 1, &ImageConverter::imageCallback, this);
-		imagePublisher = imageTransport.advertise("cropTag", 1);
+		imagePublisher = imageTransport.advertise("/cropTag", 1);
 		pub_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     		pub_points = nh.advertise<roseli::PointVector>("line/points", 1);
 		//namedWindow(OPENCV_WINDOW);
