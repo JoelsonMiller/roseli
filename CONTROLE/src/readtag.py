@@ -26,9 +26,18 @@ class ReadTag:
 		self.string = String()
 		self._pose2d_ = Pose2D()
 		self.rate = rospy.Rate(1)
-		self.range_param
 
 	def reconfigure(self, config, level):
+		#print(config)
+		self.min_h = config.min_hue_ocr
+		self.min_s = config.min_saturation_ocr
+		self.min_v = config.min_value_ocr
+		self.max_h = config.max_hue_ocr
+		print(self.max_h)
+		self.max_s = config.max_saturation_ocr
+		print(self.max_s)
+		self.max_v = config.max_value_ocr
+		print(self.max_v)
 		return config
 
 	def creating_map_client(self, pose2d, ip):
@@ -53,19 +62,15 @@ class ReadTag:
 			print ("Error: Imagem da Tag nao recebida")
 			print(e)
 
-		lowerBound1=np.array([100, 150, 0]) #lower boundary of the HSV image
-		upperBound1=np.array([140, 255, 255]) #Upper boundary of the HSV image
-		#lowerBound2=np.array([160, 50, 50]) #lower boundary of the HSV image
-                #upperBound2=np.array([170, 255, 255]) #Upper boundary of the HSV image
+		lowerBound1=np.array([self.min_h, self.min_s, self.min_v]) #lower boundary of the HSV image
+		
+		upperBound1=np.array([self.max_h, self.max_s, self.max_v]) #Upper boundary of the HSV image
+		
 		img_HSV=cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
-		#img_GRAY = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 		imgThresholder=cv2.inRange(img_HSV,lowerBound1,upperBound1,1)
-		#imgThresholder = cv2.inRange(img_GRAY, 0, 100, 1)
-		#imgThresholder2=cv2.inRange(img,lowerBound2,upperBound2,1)
-		#imgThresholder =  imgThresholder1|imgThresholder2
 
-		cv2.imshow('picamera', img)
-		cv2.waitKey(500)
+		#cv2.imshow('picamera', img)
+		#cv2.waitKey(500)
 		kernel = np.ones((3, 3), np.uint8)
 		imgFilter=cv2.morphologyEx(imgThresholder, cv2.MORPH_DILATE, kernel)
 		#imgFilter=cv2.adaptiveThreshold(imgThresholder, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 1)
