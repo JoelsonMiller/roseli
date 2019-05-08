@@ -33,11 +33,8 @@ class ReadTag:
 		self.min_s = config.min_saturation_ocr
 		self.min_v = config.min_value_ocr
 		self.max_h = config.max_hue_ocr
-		print(self.max_h)
 		self.max_s = config.max_saturation_ocr
-		print(self.max_s)
 		self.max_v = config.max_value_ocr
-		print(self.max_v)
 		return config
 
 	def creating_map_client(self, pose2d, ip):
