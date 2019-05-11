@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   dynamic_reconfigure
   ecl_threads
+  sensor_msgs
 	)
 
 ## System dependencies are found with CMake's conventions
@@ -67,7 +68,7 @@ find_package(catkin REQUIRED COMPONENTS
    CreateMap.srv
    GetOdom.srv
    ResetEnc.srv
-#   Service2.srv
+   TagImage.srv
  )
 
 ## Generate actions in the 'action' folder
@@ -82,6 +83,7 @@ find_package(catkin REQUIRED COMPONENTS
    DEPENDENCIES
    geometry_msgs
    std_msgs
+   sensor_msgs
  )
 
 ################################################
@@ -116,7 +118,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
   LIBRARIES roseli
-  CATKIN_DEPENDS cv_bridge image_transport roscpp rospy sensor_msgs std_msgs message_runtime geometry_msgs dynamic_reconfigure ecl_threads
+  CATKIN_DEPENDS cv_bridge image_transport roscpp rospy sensor_msgs std_msgs message_runtime geometry_msgs dynamic_reconfigure ecl_threads sensor_msgs
 #  DEPENDS system_lib
 )
 

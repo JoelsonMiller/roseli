@@ -115,8 +115,8 @@ void odom_move(float mag, int tipo_movimento){
 	roseli::ResetEnc resetenc;
 
 	client1.call(resetenc);
-	client2.call(getodom);
 	usleep(10000);
+	client2.call(getodom);
 	angulo = getodom.response.dist.theta;
 	distancia = getodom.response.dist.x;
 
@@ -127,7 +127,8 @@ void odom_move(float mag, int tipo_movimento){
 
         while(1){
                 if( (angulo != 0) && (distancia != 0) ){
-                        cout<<"Resetando"<<endl;
+                        client1.call(resetenc);
+			cout<<"Resetando"<<endl;
                         client2.call(getodom);
         		usleep(10000);
         		angulo = getodom.response.dist.theta;
@@ -145,7 +146,7 @@ void odom_move(float mag, int tipo_movimento){
 			client2.call(getodom);
                         usleep(10000);
                         distancia = getodom.response.dist.x;
-                        cout<<"distancia percorrida até agora: "<<distancia<<endl;
+                        //cout<<"distancia percorrida até agora: "<<distancia<<endl;
                 }while(distancia <= abs(mag));
                 cout<<"I reached the goal (distance)"<<endl;
                 move(0,0);
@@ -161,21 +162,22 @@ void odom_move(float mag, int tipo_movimento){
 		}
                 cout<<"I reached the goal (angulo)"<<endl;
                 move(0,0);
-		while(1){
-                	if( (angulo != 0) && (distancia != 0) ){
-                        	cout<<"Resetando"<<endl;
-                        	client2.call(getodom);
-                        	usleep(10000);
-                        	angulo = getodom.response.dist.theta;
-                        	distancia = getodom.response.dist.x;
-                	}
-                	else
+	}
+	while(1){
+                if( (angulo != 0) && (distancia != 0) ){
+                        client1.call(resetenc);
+			cout<<"Resetando"<<endl;
+                        client2.call(getodom);
+                        usleep(10000);
+                        angulo = getodom.response.dist.theta;
+                        distancia = getodom.response.dist.x;
+                }
+                else
                      	break;
-                	usleep(10000);
-        	}
-
-
+		usleep(10000);
         }
+
+
 
 }
 

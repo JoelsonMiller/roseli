@@ -5,6 +5,7 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/Image.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "geometry_msgs/Twist.h"
@@ -14,21 +15,22 @@
 #include "geometry_msgs/Twist.h"
 #include <dynamic_reconfigure/server.h>
 #include <roseli/param_lineConfig.h>
+#include <roseli/TagImage.h>
 
 using namespace cv;
 using namespace std;
 int height, width, min_value_line, max_value_line, min_red_frame, min_blue_frame, min_green_frame, max_red_frame, max_blue_frame, max_green_frame;
-
+int counter = 0;
 geometry_msgs::Twist velocity;
 
-void locatepoints(const cv_bridge::CvImagePtr , image_transport::Publisher, ros::Publisher, ros::Publisher);
+void locatepoints(const cv_bridge::CvImagePtr , ros::ServiceClient, ros::Publisher, ros::Publisher);
 
 static const std::string OPENCV_WINDOW = "Image window";
 
   ImageConverter::ImageConverter()
 		: imageTransport(nh){
   		imageSubscriber = imageTransport.subscribe("/raspicam_node/image", 1, &ImageConverter::imageCallback, this);
-		imagePublisher = imageTransport.advertise("/cropTag", 1);
+		imageClient = nh.serviceClient<roseli::TagImage>("/cropTag");
 		pub_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     		pub_points = nh.advertise<roseli::PointVector>("line/points", 1);
 		//namedWindow(OPENCV_WINDOW);
@@ -66,12 +68,12 @@ void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg){
       			return;
     		}
 
-	cv::imshow(OPENCV_WINDOW, img->image);
-        cv::waitKey(3);
-	locatepoints(img, imagePublisher, pub_points, pub_vel);
+	//cv::imshow(OPENCV_WINDOW, img->image);
+        //cv::waitKey(3);
+	locatepoints(img, imageClient, pub_points, pub_vel);
   }
 
-void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher imagePublisher, ros::Publisher pub_points, ros::Publisher pub_vel ){
+void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClient, ros::Publisher pub_points, ros::Publisher pub_vel ){
 
 	vector< vector<Point> > imgContours, imgContoursTag;
 	Mat imgThresholder, imgThresholderTag, imgGrayScaled, image_HSV, image_HSV1, image_HSV2, imgHSV, erode_img, element1, element2;
@@ -80,12 +82,13 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 	vector<Vec3b> buf2;
 	vector<Vec4i> hierarchy;
 	cvtColor(img->image, imgGrayScaled, CV_RGB2GRAY);
+	roseli::TagImage tag;
 	//cvtColor(img->image, imgHSV, CV_BGR2HSV);
 
 	threshold( imgGrayScaled, imgThresholder, min_value_line, max_value_line, 1);
 	//inRange(imgHSV, Scalar(0, 0, 0), Scalar(110, 255, 30), imgThresholder);
-	//imshow("Teste_threshold", imgThresholder);
-        //waitKey(5);
+	imshow("Teste_threshold", imgThresholder);
+        waitKey(5);
 	//cout<<"Erro Threshold"<<endl;
 	//find the contours in the image
 	findContours(imgThresholder, imgContours, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
@@ -218,10 +221,10 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 		//waitKey('c');
 		//imshow("Contours",drawingContours);
 		//waitKey(1);
-		//imshow("CONTOURS AND FOUND POINTS", drawingContours);
-		//waitKey('c');
+		imshow("CONTOURS AND FOUND POINTS", drawingContours);
+		waitKey('c');
 			if(p0.size()==0){
-				ros::Rate rate(0.4);
+				ros::Rate rate(0.2);
 				cvtColor(img->image, image_HSV, CV_BGR2HSV);
                         	//inRange(image_HSV, Scalar(min_blue_frame, min_green_frame, min_red_frame),
 				//		Scalar(max_blue_frame, max_green_frame, max_red_frame), imgThresholderTag);
@@ -243,8 +246,8 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
                                                 Size(2*dilate_size+1, 2*dilate_size+1),
                                                 Point(dilate_size, dilate_size));
 				dilate(erode_img, imgThresholderTag, element2);
-				imshow( "ThresholderTag", imgThresholderTag);
-	                        waitKey('c');
+				//imshow( "ThresholderTag", imgThresholderTag);
+	                        //waitKey('c');
 
 				findContours(imgThresholderTag, imgContoursTag, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
 
@@ -274,7 +277,7 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 					Rect boundRect;
 				 	vector < vector<Point> > imgContoursTagPoly(imgContoursTag.size() );
 					double maxArea = 0.0;
-					cout<<"Problem about finding contours"<<endl;
+					//cout<<"Problem about finding contours"<<endl;
 					for(int i =0; i<imgContoursTag.size(); i++){
 						double area = contourArea(imgContoursTag[i]);
 						if(area > maxArea){
@@ -295,9 +298,18 @@ void locatepoints(const cv_bridge::CvImagePtr img, image_transport::Publisher im
 					//waitKey('v');
 					//imshow("Imagem cortada", cropImage);
 					//waitKey('r');
+					std_msgs::Header header;
+					counter++;
+					header.seq = counter;
+					header.stamp = ros::Time::now(); // time
 					img->image = cropImage;
-					imagePublisher.publish(img->toImageMsg());
-					rate.sleep();
+					cv_bridge::CvImage img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::BGR8, cropImage);
+					img_bridge.toImageMsg(tag.request.tag);
+					cout<<"I could reach this part"<<endl;
+					if(!imageClient.call(tag)){
+						ROS_ERROR("Failed to call service image");
+					}
+					//rate.sleep();
 					//destroyWindow("Imagem Cortada");
 				 }
 			}

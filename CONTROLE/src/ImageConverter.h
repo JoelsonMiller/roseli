@@ -11,7 +11,8 @@ private:
 	ros::NodeHandle nh;
 	image_transport::ImageTransport imageTransport;
 	image_transport::Subscriber imageSubscriber;
-	image_transport::Publisher imagePublisher;
+	//image_transport::Publisher imagePublisher;
+	ros::ServiceClient imageClient;
 	ros::Publisher pub_vel;
 	ros::Publisher pub_points;
 	dynamic_reconfigure::Server<roseli::param_lineConfig> server;

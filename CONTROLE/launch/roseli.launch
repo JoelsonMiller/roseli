@@ -7,7 +7,7 @@
            <param name="lower_limit" value = "-0.8" />
 	</node>
 	<node pkg="roseli" type="imageprocessor6" name="imageprocessor6" output="screen">
-		<param name="min_value_line" value = "15"/>
+		<param name="min_value_line" value = "25"/>
 		<param name="max_value_line" value="255"/>
 	</node>
 	<node pkg="roseli" type="motordrive" name="motordrive" output="screen"/>
