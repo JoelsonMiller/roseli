@@ -50,7 +50,7 @@ int call_srv_map(int interest_num){
 	cm.request.pose2d.x = std::numeric_limits<double>::infinity();
         cm.request.pose2d.y = std::numeric_limits<double>::infinity();
         cm.request.pose2d.theta = std::numeric_limits<double>::infinity();
-	cm.request.pose2d.intr_pnt_brd = interest_num;
+	cm.request.intr_pnt_brd = interest_num;
         if (client.call(cm)){
         	cout<<"Intercao e: "<<cm.response.intr_pnt_graph<< endl;;
         }
@@ -142,13 +142,13 @@ void odom_move(float mag, int tipo_movimento){
         //Continua o programa apenas quando as variaveis angulo e distanica
         // forem resetadas
         if(tipo_movimento == 0){ // 0 == distância e 1 == angulo
-                do{
+                while(distancia<=abs(mag)){
                         move(flag*0.07, 0);
 			client2.call(getodom);
                         usleep(10000);
                         distancia = getodom.response.dist.x;
                         //cout<<"distancia percorrida até agora: "<<distancia<<endl;
-                }while(distancia <= abs(mag));
+                }
                 cout<<"I reached the goal (distance)"<<endl;
                 move(0,0);
 		usleep(100000);
@@ -188,11 +188,12 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 	double leftside = 0;
 	double res;
 	double dist;
-	float ang, down, center, adj, opt, adj_major, opt_major, type_move;
+	float ang, down, center, adj, opt, adj_major, opt_major;
 	std_msgs::Float64 erro;
         std_msgs::Float64 setpoint;
 	ros::Rate rate(0.5);
 	ros::Rate later(0.2);
+	int type_move;
 
 	if(points->points_center.size()!=0){
 
@@ -216,7 +217,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					move(0,0);
 					usleep(1000000);
 
-					call_srv_map(); //Call the creatinmap e insert a intersection node
+					type_move = call_srv_map(0); //Call the creatinmap e insert a intersection node
 
 					odom_move(14, 0);
 					move(0,0);
@@ -228,7 +229,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					move(0, 0);
 					usleep(1000000);
 
-					call_srv_map(); //Call the creatinmap e insert a intersection node
+					type_move = call_srv_map(0); //Call the creatinmap e insert a intersection node
 
 					odom_move(14, 0);
 					move(0,0);
@@ -241,22 +242,43 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					move(0, 0);
 					cout<<"Interseção tipo: -|"<<endl;
 
-					call_srv_map(); //Call the creatinmap e insert a intersection node
-
-					odom_move(1, 0);
+					type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
+					if(!type_move)
+						odom_move(1, 0);
+					else{
+						odom_move(14, 0);
+                                        	move(0,0);
+                                        	odom_move(90, 1);
+                                        	move(0,0);
+					}
 				}
 				else{
 					move(0,0);
 					cout<<"Interseção tipo:|-"<<endl;
 
-					call_srv_map(); //Call the creatinmap e insert a intersection node
+					type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
+					if(!type_move)
+						odom_move(1,0);
+					else{
+                                                odom_move(14, 0);
+                                                move(0,0);
+                                                odom_move(-90, 1);
+                                                move(0,0);
+                                        }
 
-					odom_move(1,0);
 				}
 			}
 			else if(points->points_up.size() == 4){
 				cout<<"Interseção tipo: Y"<<endl;
-				move(0,0);
+				type_move = call_srv_map(1);
+				if(!type_move){
+					odom_move(14, 0);
+					odom_move(30, 1);
+				}
+				else{
+					odom_move(14, 0);
+                                        odom_move(-30, 1);
+				}
 			}
 		}
 		else if((points->points_center[1].x - points->points_center[0].x) > 2*width/3){
@@ -264,18 +286,31 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				cout<<"Interseção tipo: T"<<endl;
 				move(0,0);
 				usleep(1000000);
-				odom_move(14, 0);
-				usleep(100000);
-				move(0,0);
-				odom_move(90, 1);
-				usleep(100000);
-				move(0,0);
+				type_move = call_srv_map(1);
+				if(!type_move){
+					odom_move(14, 0);
+					odom_move(90, 1);
+				}
+				else{
+					odom_move(14, 0);
+					odom_move(-90, 1);
+				}
 			}
 			else if((points->points_up.size()==2)&&(points->points_down.size()==2)){
 				cout<<"Interseção tipo: +"<<endl;
 				move(0,0);
 				usleep(1000000);
-				odom_move(3, 0);
+				type_move = call_srv_map(2);
+				if(!type_move)
+					odom_move(1, 0);
+				else if(type_move == 2){
+					odom_move(14, 0);
+					odom_move(90, 1);
+				}
+				else{
+					odom_move(14, 0);
+					odom_move(-90, 1);
+				}
 			}
 		}
 		else{
@@ -305,16 +340,19 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				//opt_major = points->points_center[2].x - points->points_center[1].x;
 				ang = atan(opt/adj)*180/PI;
 				//adj_major = opt_major/tan(ang*PI/180);
-				ROS_INFO("O angulo da curva :%f e o valor de distancia: %f", ang, adj_major);
+				ROS_INFO("O angulo da curva :%f", ang);
 				usleep(10000);
 
-				call_srv_map(); //Call the creatinmap e insert a intersection node
+				type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
 
-				move(0,0);
-				odom_move(14, 0);
-				move(0,0);
-				odom_move(-80, 1);
-				move(0,0);
+				if(!type_move){
+					odom_move(15, 0);
+					odom_move(-80, 1);
+				}
+				else{
+					odom_move(15, 0);
+					odom_move(180-ang, 1);
+				}
 			}
 			else{
 				cout<<"Interseção do tipo / (invertida)"<<endl;
@@ -326,16 +364,21 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				//opt_major = points->points_center[2].x - points->points_center[1].x;
 				ang = atan(opt/adj)*180/PI;
 				//adj_major = opt_major/tan(ang*PI/180);
-				ROS_INFO("O angulo da curva :%f e o valor de distancia: %f", ang, adj_major);
+				ROS_INFO("O angulo da curva :%f", ang);
 				move(0,0);
 				usleep(1000000);
 
-				call_srv_map(); //Call the creatinmap e insert a intersection node
+				type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
 
-				odom_move(14.0, 0);
-				move(0,0);
-				odom_move(80.0, 1);
-				move(0,0);
+				if(!type_move){
+                                        odom_move(15, 0);
+                                        odom_move(-80, 1);
+                                }
+                                else{
+                                        odom_move(15, 0);
+                                        odom_move(-180+ang, 1);
+                                }
+
 			}
 	}
 }

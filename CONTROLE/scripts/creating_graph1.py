@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import rospy
 from roseli.srv import CreateMap, CreateMapResponse
 from roseli.srv import GetOdom, GetOdomResponse
@@ -30,19 +31,15 @@ class subscriber_graph_map:
 
                         non = self.G.number_of_nodes()
                         pose = nx.get_node_attributes(self.G, 'pose_graph')
-                        #fig = plt.figure(num=self.n_node)
-                        #fig.suptitle('map')
+                        #fig = pylab.figure()
 
 			pos = {}
                         for x in range(non):
                                 pos[x] = (pose[x].x, pose[x].y)
 
-                        nx.draw_networkx(self.G, pos, with_labels=True)
-                        plt.show(block=False)
-                        time.sleep(3)
-                        plt.close()
+                        nx.draw(self.G, pos, with_labels=True)
+                        plt.savefig("/home/ros/Desktop/graph_map.png", format="PNG")
 			time.sleep(1)
-			#del fig
                         pass
 
 
@@ -53,7 +50,7 @@ class subscriber_graph_map:
 		pose = nx.get_node_attributes(self.G, 'pose_graph')
 		#print(pose)
 
-		if (data.pose2d.x == float('inf') and data.pose2d.y == float('inf') and data.pose2d.theta == float('inf')):
+		if (data.pose2d.x == float('inf') and data.pose2d.y == float('inf') and data.pose2d.theta == float('inf') and self.n_node != 0):
 				#Encontra uma interseção e infere sua posição
 				dist_move = self.distance()
 				print("Valor enc:"+ str(dist_move))
@@ -76,14 +73,16 @@ class subscriber_graph_map:
 				self.G.add_edge(self.n_node -1 , self.n_node, weight = length)
 			request = 0
 			self.n_node = self.n_node + 1
-			#self.plot_graph()
+			self.plot_graph()
 		else:
 			request = self.G.node[node]['ip']
+			self.G.node[node]['ip']-=1
 
 		return CreateMapResponse(request)
 
 
 if __name__=='__main__':
+
 	try:
 		rospy.init_node('listener')
 		subs = subscriber_graph_map()

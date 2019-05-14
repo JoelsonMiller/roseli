@@ -76,13 +76,13 @@ class ReadTag:
 		img_HSV=cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 		imgThresholder=cv2.inRange(img_HSV,lowerBound1,upperBound1,1)
 
-		#cv2.imshow('picamera', img)
-		#cv2.waitKey(500)
+		cv2.imshow('picamera', img)
+		cv2.waitKey(500)
 		kernel = np.ones((3, 3), np.uint8)
 		imgFilter=cv2.morphologyEx(imgThresholder, cv2.MORPH_DILATE, kernel)
 		#imgFilter=cv2.adaptiveThreshold(imgThresholder, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 1)
-		#cv2.imshow('window_tag', imgFilter)
-		#cv2.waitKey(1000)
+		cv2.imshow('window_tag', imgFilter)
+		cv2.waitKey(500)
 		#cv2.destroyAllWindows()
 		#cv2.waitKey(1000)
 		filename = "{}.png".format(os.getpid())
@@ -94,7 +94,7 @@ class ReadTag:
 
 		if (not len(separated) == 3):
 			print("It doesn't read a tag!")
-			return
+			return TagImageResponse()
 		else:
 			self._pose2d_.x = float(separated[0])
 			self._pose2d_.y = float(separated[1])
