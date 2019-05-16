@@ -72,19 +72,34 @@ class ReadTag:
 			print(e)
 
 		img_Gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    		img_Gray = cv2.medianBlur(img_Gray)
-    
-		cv2.imshow('grayscale_image', img_Gray)
-		cv2.waitKey(500)
-		kernel = np.ones((3, 3), np.uint8)
-		imgFilter=cv2.adaptiveThreshold(img_Gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 1)
-		imgFilter=cv2.morphologyEx(imgThresholder, cv2.MORPH_DILATE, kernel)
-    		cv2.imshow('window_tag', imgFilter)
-		cv2.waitKey(500)
+    		#img_Gray = cv2.medianBlur(img_Gray, 1)
+ 
+		#cv2.imshow('grayscale_image', img_Gray)
+		#cv2.waitKey(500)
+		kernel_1 = np.ones((1, 1), np.uint8)
+		kernel_2 = np.ones((3, 3), np.uint8)
+		imgFilter_ATGC=cv2.adaptiveThreshold(img_Gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,15, 5)
+		imgFilter_ATGC=cv2.morphologyEx(imgFilter_ATGC, cv2.MORPH_CLOSE, kernel_2)		
+
+		cv2.imshow('window_tag', imgFilter_ATGC)
+		cv2.waitKey(2000)
+
 		#cv2.destroyAllWindows()
 		#cv2.waitKey(1000)
+		lowerBound1=np.array([self.min_h, self.min_s, self.min_v]) #lower boundary of the HSV image
+		upperBound1=np.array([self.max_h, self.max_s, self.max_v]) #Upper boundary of the HSV image
+		img_HSV=cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+		imgThresholder=cv2.inRange(img_HSV,lowerBound1,upperBound1,1)
+		kernel = np.ones((3, 3), np.uint8)
+		imgFilter_IR=cv2.morphologyEx(imgThresholder, cv2.MORPH_DILATE, kernel)
+
+		output = cv2.bitwise_or(imgFilter_ATGC, cv2.bitwise_not(imgFilter_IR))
+				
+		cv2.imshow('OUTPUT', output)
+		cv2.waitKey(2000)
+
 		filename = "{}.png".format(os.getpid())
-		cv2.imwrite(filename, imgFilter)
+		cv2.imwrite(filename, output)
 		text = ocr.image_to_string(imagePil.open(filename),config="-c tessedit_char_whitelist=1234567890.")
 		os.remove(filename)
 		print(text)
