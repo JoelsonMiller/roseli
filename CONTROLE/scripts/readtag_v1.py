@@ -72,7 +72,7 @@ class ReadTag:
 			print(e)
 
 		img_Gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    img_Gray = cv2.medianBlur(img_Gray)
+    		img_Gray = cv2.medianBlur(img_Gray)
     
 		cv2.imshow('grayscale_image', img_Gray)
 		cv2.waitKey(500)
