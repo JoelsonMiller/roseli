@@ -79,7 +79,7 @@ class ReadTag:
 		kernel = np.ones((3, 3), np.uint8)
 		imgFilter=cv2.adaptiveThreshold(img_Gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 1)
 		imgFilter=cv2.morphologyEx(imgThresholder, cv2.MORPH_DILATE, kernel)
-    cv2.imshow('window_tag', imgFilter)
+    		cv2.imshow('window_tag', imgFilter)
 		cv2.waitKey(500)
 		#cv2.destroyAllWindows()
 		#cv2.waitKey(1000)
