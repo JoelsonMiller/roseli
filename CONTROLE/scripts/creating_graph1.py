@@ -75,7 +75,7 @@ class subscriber_graph_map:
 			self.n_node = self.n_node + 1
 			self.plot_graph()
 		else:
-			request = self.G.node[node]['ip']
+			#request = self.G.node[node]['ip']
 			self.G.node[node]['ip']-=1
 
 		return CreateMapResponse(request)

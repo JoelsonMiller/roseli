@@ -53,10 +53,11 @@ int call_srv_map(int interest_num){
 	cm.request.intr_pnt_brd = interest_num;
         if (client.call(cm)){
         	cout<<"Intercao e: "<<cm.response.intr_pnt_graph<< endl;;
-        }
+        	return cm.response.intr_pnt_graph;
+	}
         else{
         	ROS_ERROR("Failed to call service CreateMap");
-                return cm.response.intr_pnt_graph;
+                exit(0);
         }
 }
 
@@ -257,9 +258,11 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					cout<<"Interseção tipo:|-"<<endl;
 
 					type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
-					if(!type_move)
+					if(type_move == 0){
 						odom_move(1,0);
+					}
 					else{
+						cout<<"I not supposed to be here!"<<endl;
                                                 odom_move(14, 0);
                                                 move(0,0);
                                                 odom_move(-90, 1);
@@ -351,7 +354,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				}
 				else{
 					odom_move(15, 0);
-					odom_move(180-ang, 1);
+					odom_move(-180+ang, 1);
 				}
 			}
 			else{
@@ -372,11 +375,11 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 				if(!type_move){
                                         odom_move(15, 0);
-                                        odom_move(-80, 1);
+                                        odom_move(80, 1);
                                 }
                                 else{
                                         odom_move(15, 0);
-                                        odom_move(-180+ang, 1);
+                                        odom_move(180-ang, 1);
                                 }
 
 			}
