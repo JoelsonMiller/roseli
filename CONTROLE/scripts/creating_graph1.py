@@ -10,6 +10,7 @@ matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 import time
 import math
+import getpass
 
 class subscriber_graph_map:
 
@@ -38,19 +39,24 @@ class subscriber_graph_map:
                                 pos[x] = (pose[x].x, pose[x].y)
 
                         nx.draw(self.G, pos, with_labels=True)
-                        plt.savefig("/home/ros/Desktop/graph_map.png", format="PNG")
+                        plt.savefig("/home/"+getpass.getuser()+"/Desktop/graph_map.png", format="PNG")
 			time.sleep(1)
                         pass
 
 
+	def choose_path(self):
+		request = self.G.node[node]['ip']
+		self.G.node[node]['ip']-=1
+		return request
+	
 	def graph_map(self, data):
 
 		test_node = False
-		non = self.G.number_of_nodes()
+		self.non = self.G.number_of_nodes()
 		pose = nx.get_node_attributes(self.G, 'pose_graph')
 		#print(pose)
 
-		if (data.pose2d.x == float('inf') and data.pose2d.y == float('inf') and data.pose2d.theta == float('inf') and self.n_node != 0):
+		if (data.pose2d.x == float('inf') and data.pose2d.y == float('inf') and data.pose2d.theta == float('inf') and non != 0):
 				#Encontra uma interseção e infere sua posição
 				dist_move = self.distance()
 				print("Valor enc:"+ str(dist_move))
@@ -59,7 +65,7 @@ class subscriber_graph_map:
 				data.pose2d.y = pose[self.n_node-1].y + dist_move*math.sin(math.radians(_t_))
 				print("A pose da intersecao e: x="+str(data.pose2d.x)+" e y="+str(data.pose2d.y))
 
-		for node in range(non):
+		for node in range(self.non):
 
 			if( data.pose2d.x == pose[node].x and data.pose2d.y == pose[node].y and data.pose2d.theta == pose[node].theta):
 				test_node = True
@@ -69,14 +75,13 @@ class subscriber_graph_map:
 			print ("Novo noh adicionado")
 			self.G.add_node(self.n_node, pose_graph = data.pose2d, ip = data.intr_pnt_brd)
 			if(self.n_node != 0):
-				length = math.sqrt(data.pose2d.x**2+data.pose2d.y**2)
+				length = math.sqrt(data.pose2d.x**2+data.pose2d.y**2) #corrigir está errado
 				self.G.add_edge(self.n_node -1 , self.n_node, weight = length)
 			request = 0
 			self.n_node = self.n_node + 1
 			self.plot_graph()
 		else:
-			#request = self.G.node[node]['ip']
-			self.G.node[node]['ip']-=1
+			request = self.choose_path()			
 
 		return CreateMapResponse(request)
 

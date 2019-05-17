@@ -73,34 +73,36 @@ class ReadTag:
 
 		img = cv2.resize(img, None, fx=2, fy=2)
 		img_Gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    		#img_Gray = cv2.medianBlur(img_Gray, 3)
+    		img_Gray = cv2.bilateralFilter(img_Gray, 5, 20, 20)
 
-		#cv2.imshow('grayscale_image', img_Gray)
-		#cv2.waitKey(500)
+		cv2.imshow('grayscale_image', img_Gray)
+		cv2.waitKey(500)
 		kernel = np.ones((30, 30), np.uint8)
 		kernel_1 = np.ones((2, 2), np.uint8)
-		kernel_2 = np.ones((5, 5), np.uint8)
-		imgFilter_ATGC = cv2.adaptiveThreshold(img_Gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 3)		
-		imgFilter_ATGC = cv2.morphologyEx(imgFilter_ATGC, cv2.MORPH_CLOSE, kernel_2)
-		imgFilter_ATGC = cv2.morphologyEx(imgFilter_ATGC, cv2.MORPH_DILATE, kernel_1)
+		kernel_2 = np.ones((3, 3), np.uint8)
+		imgFilter_ATGC = cv2.adaptiveThreshold(img_Gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 25, 12)
 
-		#cv2.imshow('Primeiro Filtro', imgFilter_ATGC)
-		#cv2.waitKey(2000)
+		cv2.imshow('Threshold Image', imgFilter_ATGC)
+		cv2.waitKey(2000)
+		imgFilter_ATGC = cv2.morphologyEx(imgFilter_ATGC, cv2.MORPH_CLOSE, kernel_2)
+		#imgFilter_ATGC = cv2.morphologyEx(imgFilter_ATGC, cv2.MORPH_DILATE, kernel_1)
+
+		cv2.imshow('Primeiro Filtro', imgFilter_ATGC)
+		cv2.waitKey(2000)
 
 		lowerBound1=np.array([self.min_h, self.min_s, self.min_v]) #lower boundary of the HSV image
 		upperBound1=np.array([self.max_h, self.max_s, self.max_v]) #Upper boundary of the HSV image
 		img_HSV=cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 		imgThresholder=cv2.inRange(img_HSV,lowerBound1,upperBound1,1)
 		imgFilter_IR=cv2.morphologyEx(imgThresholder, cv2.MORPH_DILATE, np.ones((30, 30), np.uint8))	
-		imgFilter_IR=cv2.morphologyEx(imgFilter_IR, cv2.MORPH_ERODE, np.ones((15, 15), np.uint8))	
+		imgFilter_IR=cv2.morphologyEx(imgFilter_IR, cv2.MORPH_ERODE, np.ones((17, 17), np.uint8))	
 
-		#cv2.imshow('Segundo Filtro', imgFilter_IR)
-		#cv2.waitKey(2000)
+		cv2.imshow('Segundo Filtro', imgFilter_IR)
+		cv2.waitKey(2000)
 
 		output = cv2.bitwise_or(imgFilter_ATGC, cv2.bitwise_not(imgFilter_IR))
-
-		#cv2.imshow('OUTPUT', output)
-		#cv2.waitKey(2000)
+		cv2.imshow('OUTPUT', output)
+		cv2.waitKey(2000)
 
 		filename = "{}.png".format(os.getpid())
 		cv2.imwrite(filename, output)

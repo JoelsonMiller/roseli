@@ -76,18 +76,25 @@ void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg){
 void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClient, ros::Publisher pub_points, ros::Publisher pub_vel ){
 
 	vector< vector<Point> > imgContours, imgContoursTag;
-	Mat imgThresholder, imgThresholderTag, imgGrayScaled, image_HSV, image_HSV1, image_HSV2, imgHSV, erode_img, element1, element2;
+	Mat imgThresholder, imgThresholderTag, imgGrayScaled, image_HSV, image_HSV1, image_HSV2, imgHSV, erode_img, element1, element2, dst;
 	vector<Vec3b> buf0;
 	vector<Vec3b> buf1;
 	vector<Vec3b> buf2;
 	vector<Vec4i> hierarchy;
-	cvtColor(img->image, imgGrayScaled, CV_RGB2GRAY);
+	bilateralFilter(img->image, dst, 9, 75, 75);
+	//imshow("Imagem com Filtro", dst);
+       // waitKey(5);
+
+	cvtColor(dst, imgGrayScaled, CV_RGB2GRAY);
 	roseli::TagImage tag;
 	//cvtColor(img->image, imgHSV, CV_BGR2HSV);
-
+	//bilateralFilter(imgGrayScaled,dst, 9, 75, 75);
+	//imshow("Imagem em GrayScaled", imgGrayScaled);
+        //waitKey(6);
+	//adaptiveThreshold(imgGrayScaled, imgThresholder, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 49, 20);
 	threshold( imgGrayScaled, imgThresholder, min_value_line, max_value_line, 1);
 	//inRange(imgHSV, Scalar(0, 0, 0), Scalar(110, 255, 30), imgThresholder);
-	imshow("Teste_threshold", imgThresholder);
+	imshow("Imagem Threshold", imgThresholder);
         waitKey(5);
 	//cout<<"Erro Threshold"<<endl;
 	//find the contours in the image
