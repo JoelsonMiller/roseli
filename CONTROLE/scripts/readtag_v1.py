@@ -91,8 +91,8 @@ class ReadTag:
 		upperBound1=np.array([self.max_h, self.max_s, self.max_v]) #Upper boundary of the HSV image
 		img_HSV=cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 		imgThresholder=cv2.inRange(img_HSV,lowerBound1,upperBound1,1)
-		imgFilter_IR=cv2.morphologyEx(imgThresholder, cv2.MORPH_DILATE, kernel)	
-		imgFilter_IR=cv2.morphologyEx(imgFilter_IR, cv2.MORPH_ERODE, np.ones((10, 10), np.uint8))	
+		imgFilter_IR=cv2.morphologyEx(imgThresholder, cv2.MORPH_DILATE, np.ones((30, 30), np.uint8))	
+		imgFilter_IR=cv2.morphologyEx(imgFilter_IR, cv2.MORPH_ERODE, np.ones((15, 15), np.uint8))	
 
 		#cv2.imshow('Segundo Filtro', imgFilter_IR)
 		#cv2.waitKey(2000)
