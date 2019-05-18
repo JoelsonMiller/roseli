@@ -98,7 +98,7 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 	int closing_type = MORPH_RECT;
 	int closing_size = 2;
 	element = getStructuringElement(closing_type, Size(2*closing_size+1, 2*closing_size+1), Point(closing_size, closing_size));
-	morphologyEx(imgThresholder, imgThresholder, 1, element);
+	morphologyEx(imgThresholder, imgThresholder, MORPH_CLOSE, element);
 	imshow("Imagem Threshold", imgThresholder);
         waitKey(5);
 	//cout<<"Erro Threshold"<<endl;
