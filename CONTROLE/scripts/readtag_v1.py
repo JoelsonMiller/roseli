@@ -15,6 +15,7 @@ from roseli.srv import TagImage, TagImageResponse
 from roseli.srv import ResetEnc, ResetEncRequest
 from dynamic_reconfigure.server import Server
 from roseli.cfg import ocr_tagConfig
+import re
 
 class ReadTag:
 
@@ -75,20 +76,20 @@ class ReadTag:
 		img_Gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     		img_Gray = cv2.bilateralFilter(img_Gray, 5, 20, 20)
 
-		cv2.imshow('grayscale_image', img_Gray)
-		cv2.waitKey(500)
+		#cv2.imshow('grayscale_image', img_Gray)
+		#cv2.waitKey(500)
 		kernel = np.ones((30, 30), np.uint8)
 		kernel_1 = np.ones((2, 2), np.uint8)
 		kernel_2 = np.ones((3, 3), np.uint8)
 		imgFilter_ATGC = cv2.adaptiveThreshold(img_Gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 25, 12)
 
-		cv2.imshow('Threshold Image', imgFilter_ATGC)
-		cv2.waitKey(2000)
+		#cv2.imshow('Threshold Image', imgFilter_ATGC)
+		#cv2.waitKey(2000)
 		imgFilter_ATGC = cv2.morphologyEx(imgFilter_ATGC, cv2.MORPH_CLOSE, kernel_2)
 		#imgFilter_ATGC = cv2.morphologyEx(imgFilter_ATGC, cv2.MORPH_DILATE, kernel_1)
 
-		cv2.imshow('Primeiro Filtro', imgFilter_ATGC)
-		cv2.waitKey(2000)
+		#cv2.imshow('Primeiro Filtro', imgFilter_ATGC)
+		#cv2.waitKey(2000)
 
 		lowerBound1=np.array([self.min_h, self.min_s, self.min_v]) #lower boundary of the HSV image
 		upperBound1=np.array([self.max_h, self.max_s, self.max_v]) #Upper boundary of the HSV image
@@ -97,23 +98,26 @@ class ReadTag:
 		imgFilter_IR=cv2.morphologyEx(imgThresholder, cv2.MORPH_DILATE, np.ones((30, 30), np.uint8))	
 		imgFilter_IR=cv2.morphologyEx(imgFilter_IR, cv2.MORPH_ERODE, np.ones((17, 17), np.uint8))	
 
-		cv2.imshow('Segundo Filtro', imgFilter_IR)
-		cv2.waitKey(2000)
+		#cv2.imshow('Segundo Filtro', imgFilter_IR)
+		#cv2.waitKey(2000)
 
 		output = cv2.bitwise_or(imgFilter_ATGC, cv2.bitwise_not(imgFilter_IR))
-		cv2.imshow('OUTPUT', output)
-		cv2.waitKey(2000)
+		#cv2.imshow('OUTPUT', output)
+	#	cv2.waitKey(2000)
 
 		filename = "{}.png".format(os.getpid())
 		cv2.imwrite(filename, output)
 		text = ocr.image_to_string(imagePil.open(filename),config="-c tessedit_char_whitelist=1234567890. --user-patterns patterns.txt")
-		os.remove(filename)
+		os.remove(filename)		
 		print(text)
 		separated= text.split(' ')
 
 		if (not len(separated) == 3):
-			print("It doesn't read a tag!")
-			return TagImageResponse()
+			for i in range(len(separated)):
+				matchObj = re.match("\d\d\d.\d ", separated[i])				
+				if (matchObj == None):
+					print("It doesn't read a tag!")
+
 		else:
 			self._pose2d_.x = float(separated[0])
 			self._pose2d_.y = float(separated[1])

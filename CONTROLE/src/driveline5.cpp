@@ -143,12 +143,12 @@ void odom_move(float mag, int tipo_movimento){
         //Continua o programa apenas quando as variaveis angulo e distanica
         // forem resetadas
         if(tipo_movimento == 0){ // 0 == distância e 1 == angulo
-                while(distancia<=abs(mag)){
+                while(abs(distancia)<=abs(mag)){
                         move(flag*0.07, 0);
 			client2.call(getodom);
-                        usleep(10000);
+                        usleep(1000);
                         distancia = getodom.response.dist.x;
-                        //cout<<"distancia percorrida até agora: "<<distancia<<endl;
+                        //cout<<"distancia percorrida até agora: "<<distancia<<" valor a ser alcancado: "<<abs(mag)<<endl;
                 }
                 cout<<"I reached the goal (distance)"<<endl;
                 move(0,0);
@@ -159,7 +159,7 @@ void odom_move(float mag, int tipo_movimento){
                         move(0, flag*0.07);
                         //cout<<"angulo girado até agora: "<<angulo<<endl;
                 	client2.call(getodom);
-                        usleep(10000);
+                        usleep(1000);
                         angulo = getodom.response.dist.theta;
 		}
                 cout<<"I reached the goal (angulo)"<<endl;
@@ -207,10 +207,10 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 	//dist = (points->points_center[1].x-points->points_center[0].x);
 //	ROS_INFO("Pontos na imagem %f", dist );
 
-	if((points->points_center.size()  == 1)||(points->points_center.size() == 0)){ //Robô não se desloca
+	if((points->points_center.size() == 0)){ //Robô não se desloca
 			move(0,0);
 
-	}else if(points->points_center.size() == 2){
+	}else if((points->points_center.size() == 2)){
 		 if((points->points_center[1].x-points->points_center[0].x) > width/3){
 			if((points->points_up.size() == 0) && (points->points_down.size() == 2)){
 				if(res < 0){
@@ -224,6 +224,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					move(0,0);
 					odom_move(-90, 1);
 					move(0,0);
+					odom_move(-5, 0);
 				}
 				else{
 					cout<<"Angulo de 90 graus"<<endl;
@@ -236,6 +237,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					move(0,0);
 					odom_move(90, 1);
 					move(0,0);
+					odom_move(-5, 0);
 				}
 			}
 			else if((points->points_up.size() == 2)&&(points->points_down.size()==2)){
@@ -284,38 +286,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				}
 			}
 		}
-		else if((points->points_center[1].x - points->points_center[0].x) > 2*width/3){
-			if((points->points_up.size() == 0) && (points->points_down.size() == 2)){
-				cout<<"Interseção tipo: T"<<endl;
-				move(0,0);
-				usleep(1000000);
-				type_move = call_srv_map(1);
-				if(!type_move){
-					odom_move(14, 0);
-					odom_move(90, 1);
-				}
-				else{
-					odom_move(14, 0);
-					odom_move(-90, 1);
-				}
-			}
-			else if((points->points_up.size()==2)&&(points->points_down.size()==2)){
-				cout<<"Interseção tipo: +"<<endl;
-				move(0,0);
-				usleep(1000000);
-				type_move = call_srv_map(2);
-				if(!type_move)
-					odom_move(1, 0);
-				else if(type_move == 2){
-					odom_move(14, 0);
-					odom_move(90, 1);
-				}
-				else{
-					odom_move(14, 0);
-					odom_move(-90, 1);
-				}
-			}
-		}
+		
 		else{
 				//move(0.2, res/300);
 				//plot.data = res/350;
@@ -383,6 +354,46 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
                                 }
 
 			}
+	}
+	else if(points->points_center.size() == 1){
+		
+if(points->points_center[0].x > 4*width/5){
+			if((points->points_up.size() == 0) && (points->points_down.size() == 2)){
+				cout<<"Interseção tipo: T"<<endl;
+				move(0,0);
+				usleep(1000000);
+				type_move = call_srv_map(1);
+				if(!type_move){
+					odom_move(14, 0);
+					odom_move(90, 1);
+					odom_move(-5.0, 0);
+				}
+				else{
+					odom_move(14, 0);
+					odom_move(-90, 1);
+					odom_move(-5.0, 0);
+				}
+			}
+			else if((points->points_up.size()==2)&&(points->points_down.size()==2)){
+				cout<<"Interseção tipo: +"<<endl;
+				move(0,0);
+				usleep(1000000);
+				type_move = call_srv_map(2);
+				if(!type_move)
+					odom_move(1, 0);
+				else if(type_move == 2){
+					odom_move(14, 0);
+					odom_move(90, 1);
+					odom_move(-5.0, 0);
+				}
+				else{
+					odom_move(14, 0);
+					odom_move(-90, 1);
+					odom_move(-5.0, 0);
+				}
+			}
+		}
+	
 	}
 }
 

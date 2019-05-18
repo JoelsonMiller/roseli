@@ -76,12 +76,12 @@ void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg){
 void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClient, ros::Publisher pub_points, ros::Publisher pub_vel ){
 
 	vector< vector<Point> > imgContours, imgContoursTag;
-	Mat imgThresholder, imgThresholderTag, imgGrayScaled, image_HSV, image_HSV1, image_HSV2, imgHSV, erode_img, element1, element2, dst;
+	Mat imgThresholder, imgThresholderTag, imgGrayScaled, image_HSV, image_HSV1, image_HSV2, imgHSV, erode_img, element, element1, element2, dst;
 	vector<Vec3b> buf0;
 	vector<Vec3b> buf1;
 	vector<Vec3b> buf2;
 	vector<Vec4i> hierarchy;
-	bilateralFilter(img->image, dst, 9, 75, 75);
+	bilateralFilter(img->image, dst, 5, 75, 75);
 	//imshow("Imagem com Filtro", dst);
        // waitKey(5);
 
@@ -94,6 +94,11 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 	//adaptiveThreshold(imgGrayScaled, imgThresholder, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 49, 20);
 	threshold( imgGrayScaled, imgThresholder, min_value_line, max_value_line, 1);
 	//inRange(imgHSV, Scalar(0, 0, 0), Scalar(110, 255, 30), imgThresholder);
+
+	int closing_type = MORPH_RECT;
+	int closing_size = 2;
+	element = getStructuringElement(closing_type, Size(2*closing_size+1, 2*closing_size+1), Point(closing_size, closing_size));
+	morphologyEx(imgThresholder, imgThresholder, 1, element);
 	imshow("Imagem Threshold", imgThresholder);
         waitKey(5);
 	//cout<<"Erro Threshold"<<endl;

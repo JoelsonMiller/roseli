@@ -55,16 +55,24 @@ class subscriber_graph_map:
 		self.non = self.G.number_of_nodes()
 		pose = nx.get_node_attributes(self.G, 'pose_graph')
 		#print(pose)
-
-		if (data.pose2d.x == float('inf') and data.pose2d.y == float('inf') and data.pose2d.theta == float('inf') and non != 0):
+		request = 0
+		if (data.pose2d.x == float('inf') and data.pose2d.y == float('inf') and data.pose2d.theta == float('inf')):
 				#Encontra uma interseção e infere sua posição
-				dist_move = self.distance()
-				print("Valor enc:"+ str(dist_move))
-				_t_ = float(pose[self.n_node - 1].theta)
-				data.pose2d.x = pose[self.n_node-1].x + dist_move*math.cos(math.radians(_t_))
-				data.pose2d.y = pose[self.n_node-1].y + dist_move*math.sin(math.radians(_t_))
-				print("A pose da intersecao e: x="+str(data.pose2d.x)+" e y="+str(data.pose2d.y))
-
+				if(self.n_node):
+					dist_move = self.distance()
+					print("Valor enc:"+ str(dist_move))
+					_t_ = float(pose[self.n_node - 1].theta)
+					if(_t_ != float('inf')):
+						data.pose2d.x = pose[self.n_node-1].x + dist_move*math.cos(math.radians(_t_))
+						data.pose2d.y = pose[self.n_node-1].y + dist_move*math.sin(math.radians(_t_))
+						print("A pose da intersecao eh: x="+str(data.pose2d.x)+" e y="+str(data.pose2d.y))
+					else:
+						print("Not possible to add this intersection")
+						return CreateMapResponse(request)	
+				else:
+					print("Not possible to add this intersection")
+					return CreateMapResponse(request)	
+		
 		for node in range(self.non):
 
 			if( data.pose2d.x == pose[node].x and data.pose2d.y == pose[node].y and data.pose2d.theta == pose[node].theta):
