@@ -68,8 +68,8 @@ void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg){
       			return;
     		}
 
-	cv::imshow(OPENCV_WINDOW, img->image);
-        cv::waitKey(3);
+	//cv::imshow(OPENCV_WINDOW, img->image);
+        //cv::waitKey(3);
 	locatepoints(img, imageClient, pub_points, pub_vel);
   }
 
@@ -82,15 +82,15 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 	vector<Vec3b> buf2;
 	vector<Vec4i> hierarchy;
 	roseli::TagImage tag;
-	
+
 	bilateralFilter(img->image, dst, 5, 100, 100);
-	imshow("Imagem com Filtro", dst);
-        waitKey(5);
+	//imshow("Imagem com Filtro", dst);
+        //waitKey(5);
 
 	/*cvtColor(dst, imgHSV, CV_BGR2HSV);
 	imshow("Imagem em HSV", imgHSV);
         waitKey(7);
-	
+
 	inRange(imgHSV, Scalar(0, 0, 0), Scalar(180, 255, 30), imgThresholder1);
 	imshow("Imagem Threshold from HSV Image", imgThresholder1);
         waitKey(8);*/
@@ -99,14 +99,14 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 	int closing_size = 5;
 	element = getStructuringElement(closing_type, Size(2*closing_size+1, 2*closing_size+1), Point(closing_size, closing_size));
 	cvtColor(dst, imgGrayScaled, CV_RGB2GRAY);
-	imshow("Imagem em GrayScaled", imgGrayScaled);
-        waitKey(6);
+	//imshow("Imagem em GrayScaled", imgGrayScaled);
+        //waitKey(6);
 	//threshold( imgGrayScaled, imgThresholder2, min_value_line, max_value_line, 1);
 	adaptiveThreshold(imgGrayScaled, imgThresholder2, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 75, 20);
 	morphologyEx(imgThresholder2, imgThresholder2, MORPH_OPEN, element);
 	//morphologyEx(imgThresholder2, imgThresholder2, MORPH_CLOSE, element);
-	imshow("Imagem Threshold from GrayScaled Image", imgThresholder2);
-        waitKey(4);
+	//imshow("Imagem Threshold from GrayScaled Image", imgThresholder2);
+        //waitKey(4);
 
 	findContours(imgThresholder2, imgContours, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
 
@@ -331,4 +331,5 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 			//cout<<"NO FOUND CONTOURS"<<endl;
 		}
 }
+
 

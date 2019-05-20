@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 import time
 import math
 import getpass
+import numpy
 
 class subscriber_graph_map:
 
@@ -18,6 +19,7 @@ class subscriber_graph_map:
                 subs = rospy.Service('/pose2D', CreateMap, self.graph_map)
 		self.G = nx.Graph()
 		self.n_node = 0
+		self.past_node = 0
 
 	def distance(self):
 		rospy.wait_for_service('odom_server')
@@ -44,9 +46,13 @@ class subscriber_graph_map:
                         pass
 
 
-	def choose_path(self):
+	def choose_path(self, node):
+
 		request = self.G.node[node]['ip']
-		self.G.node[node]['ip']-=1
+		print("A interseção retornada é: "+str(request))
+		if(request!=0):
+			self.G.node[node]['ip']-=1
+		
 		return request
 	
 	def graph_map(self, data):
@@ -56,27 +62,30 @@ class subscriber_graph_map:
 		pose = nx.get_node_attributes(self.G, 'pose_graph')
 		#print(pose)
 		request = 0
+		tol = 0.1 #
 		if (data.pose2d.x == float('inf') and data.pose2d.y == float('inf') and data.pose2d.theta == float('inf')):
 				#Encontra uma interseção e infere sua posição
 				if(self.n_node):
 					dist_move = self.distance()
 					print("Valor enc:"+ str(dist_move))
-					_t_ = float(pose[self.n_node - 1].theta)
-					if(_t_ != float('inf')):
-						data.pose2d.x = pose[self.n_node-1].x + dist_move*math.cos(math.radians(_t_))
-						data.pose2d.y = pose[self.n_node-1].y + dist_move*math.sin(math.radians(_t_))
-						print("A pose da intersecao eh: x="+str(data.pose2d.x)+" e y="+str(data.pose2d.y))
-					else:
-						print("Not possible to add this intersection")
-						return CreateMapResponse(request)	
+					print("O noh passado eh: "+str(self.past_node))
+					_t_ = float(pose[self.past_node].theta)
+					#if(_t_ != float('inf')):
+					data.pose2d.x = pose[self.past_node].x + dist_move*math.cos(math.radians(_t_))
+					data.pose2d.y = pose[self.past_node].y + dist_move*math.sin(math.radians(_t_))
+					print("A pose da intersecao eh: x="+str(data.pose2d.x)+" e y="+str(data.pose2d.y))
+						
 				else:
 					print("Not possible to add this intersection")
 					return CreateMapResponse(request)	
 		
 		for node in range(self.non):
 
-			if( data.pose2d.x == pose[node].x and data.pose2d.y == pose[node].y and data.pose2d.theta == pose[node].theta):
+			#if( data.pose2d.x == pose[node].x and data.pose2d.y == pose[node].y and data.pose2d.theta == pose[node].theta):
+			if( numpy.isclose(data.pose2d.x, pose[node].x, tol)\
+				 and numpy.isclose(data.pose2d.y, pose[node].y, tol)):
 				test_node = True
+				self.past_node=node
 				break
 
 		if(test_node == False):
@@ -86,10 +95,11 @@ class subscriber_graph_map:
 				length = math.sqrt(data.pose2d.x**2+data.pose2d.y**2) #corrigir está errado
 				self.G.add_edge(self.n_node -1 , self.n_node, weight = length)
 			request = 0
+			self.past_node = self.n_node
 			self.n_node = self.n_node + 1
 			self.plot_graph()
 		else:
-			request = self.choose_path()			
+			request = self.choose_path(node)			
 
 		return CreateMapResponse(request)
 

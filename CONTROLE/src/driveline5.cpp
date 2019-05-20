@@ -221,9 +221,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					type_move = call_srv_map(0); //Call the creatinmap e insert a intersection node
 
 					odom_move(14, 0);
-					move(0,0);
 					odom_move(-90, 1);
-					move(0,0);
 					odom_move(-5, 0);
 				}
 				else{
@@ -234,9 +232,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					type_move = call_srv_map(0); //Call the creatinmap e insert a intersection node
 
 					odom_move(14, 0);
-					move(0,0);
 					odom_move(90, 1);
-					move(0,0);
 					odom_move(-5, 0);
 				}
 			}
@@ -246,13 +242,12 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					cout<<"Interseção tipo: -|"<<endl;
 
 					type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
-					if(!type_move)
+					if(type_move==0)
 						odom_move(1, 0);
 					else{
 						odom_move(14, 0);
-                                        	move(0,0);
-                                        	odom_move(90, 1);
-                                        	move(0,0);
+                                        	odom_move(-90, 1); 
+						odom_move(-5, 0); 
 					}
 				}
 				else{
@@ -266,9 +261,8 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					else{
 						cout<<"I not supposed to be here!"<<endl;
                                                 odom_move(14, 0);
-                                                move(0,0);
-                                                odom_move(-90, 1);
-                                                move(0,0);
+                                                odom_move(90, 1);
+						odom_move(-5, 0);
                                         }
 
 				}
@@ -276,7 +270,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 			else if(points->points_up.size() == 4){
 				cout<<"Interseção tipo: Y"<<endl;
 				type_move = call_srv_map(1);
-				if(!type_move){
+				if(type_move==0){
 					odom_move(14, 0);
 					odom_move(30, 1);
 				}
@@ -319,7 +313,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 				type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
 
-				if(!type_move){
+				if(type_move==0){
 					odom_move(15, 0);
 					odom_move(-80, 1);
 				}
@@ -344,7 +338,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 				type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
 
-				if(!type_move){
+				if(type_move==0){
                                         odom_move(15, 0);
                                         odom_move(80, 1);
                                 }
