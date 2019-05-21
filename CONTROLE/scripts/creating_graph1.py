@@ -82,8 +82,7 @@ class subscriber_graph_map:
 		for node in range(self.non):
 
 			#if( data.pose2d.x == pose[node].x and data.pose2d.y == pose[node].y and data.pose2d.theta == pose[node].theta):
-			if( numpy.isclose(data.pose2d.x, pose[node].x, tol)\
-				 and numpy.isclose(data.pose2d.y, pose[node].y, tol)):
+			if( numpy.isclose(data.pose2d.x, pose[node].x, tol) and numpy.isclose(data.pose2d.y, pose[node].y, tol)):
 				test_node = True
 				self.past_node=node
 				break
