@@ -93,7 +93,7 @@ class subscriber_graph_map:
 			self.G.add_node(self.n_node, pose_graph = data.pose2d, ip = data.intr_pnt_brd)
 			if(self.n_node != 0):
 				length = math.sqrt(data.pose2d.x**2+data.pose2d.y**2) #corrigir está errado
-				self.G.add_edge(self.n_node -1 , self.n_node, weight = length)
+				self.G.add_edge(self.past_node , self.n_node, weight = length)
 			request = 0
 			self.past_node = self.n_node
 			self.n_node = self.n_node + 1
