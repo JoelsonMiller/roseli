@@ -105,8 +105,11 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 	adaptiveThreshold(imgGrayScaled, imgThresholder2, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 75, 20);
 	morphologyEx(imgThresholder2, imgThresholder2, MORPH_OPEN, element);
 	//morphologyEx(imgThresholder2, imgThresholder2, MORPH_CLOSE, element);
-	//imshow("Imagem Threshold from GrayScaled Image", imgThresholder2);
-        //waitKey(4);
+	imshow("Imagem Threshold from GrayScaled Image", imgThresholder2);
+        waitKey(4);
+	int y = 0;
+	for(int x = 0; x <imgThresholder2.rows; x++)
+		imgThresholder2.at<uchar>(x,y) = 0;
 
 	findContours(imgThresholder2, imgContours, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
 

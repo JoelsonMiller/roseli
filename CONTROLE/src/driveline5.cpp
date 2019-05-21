@@ -155,7 +155,7 @@ void odom_move(float mag, int tipo_movimento){
 		usleep(100000);
         }
         else if (tipo_movimento == 1){
-                while(angulo <= abs(mag)){
+                while(abs(angulo) <= abs(mag)){
                         move(0, flag*0.07);
                         //cout<<"angulo girado até agora: "<<angulo<<endl;
                 	client2.call(getodom);
@@ -220,8 +220,8 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 					type_move = call_srv_map(0); //Call the creatinmap e insert a intersection node
 
-					odom_move(14, 0);
-					odom_move(-90, 1);
+					odom_move(13, 0);
+					odom_move(-85, 1);
 					odom_move(-5, 0);
 				}
 				else{
@@ -231,8 +231,8 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 					type_move = call_srv_map(0); //Call the creatinmap e insert a intersection node
 
-					odom_move(14, 0);
-					odom_move(90, 1);
+					odom_move(13, 0);
+					odom_move(85, 1);
 					odom_move(-5, 0);
 				}
 			}
@@ -246,8 +246,8 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 						odom_move(1, 0);
 					else{
 						odom_move(14, 0);
-                                        	odom_move(-90, 1); 
-						odom_move(-5, 0); 
+                                        	odom_move(-90, 1);
+						odom_move(-5, 0);
 					}
 				}
 				else{
@@ -280,7 +280,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				}
 			}
 		}
-		
+
 		else{
 				//move(0.2, res/300);
 				//plot.data = res/350;
@@ -289,10 +289,10 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				erro.data = -res;
 				setpoint.data = 0;
                         	pub_setpoint.publish(setpoint);
-                        	usleep(10000);
+                        	usleep(20000);
                         	pub_state.publish(erro);
-                        	usleep(10000);
-                        	move(0.2, control_data);
+                        	usleep(20000);
+                        	move(0.15, control_data);
                         	control_data = 0;
 		}
 
@@ -314,12 +314,12 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
 
 				if(type_move==0){
-					odom_move(15, 0);
+					odom_move(16, 0);
 					odom_move(-80, 1);
 				}
 				else{
-					odom_move(15, 0);
-					odom_move(-180+ang, 1);
+					odom_move(16, 0);
+					odom_move(-170+ang, 1);
 				}
 			}
 			else{
@@ -339,12 +339,12 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
 
 				if(type_move==0){
-                                        odom_move(15, 0);
+                                        odom_move(16, 0);
                                         odom_move(80, 1);
                                 }
                                 else{
-                                        odom_move(15, 0);
-                                        odom_move(180-ang, 1);
+                                        odom_move(16, 0);
+                                        odom_move(170-ang, 1);
                                 }
 
 			}
