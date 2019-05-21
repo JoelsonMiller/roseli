@@ -47,7 +47,11 @@ class subscriber_graph_map:
 
 
 	def choose_path(self, node):
-
+		'''
+		for index in range(self.non):
+			if (self.G.node[index]['ip']!=0):
+				
+		'''
 		request = self.G.node[node]['ip']
 		print("A interseção retornada é: "+str(request))
 		if(request!=0):
