@@ -128,7 +128,7 @@ class ReadTag:
 
 			self.twist.linear.x = 0.3
 			self.twist.angular.z = 0
-			for x in range(0, 10):
+			for x in range(0, 5):
 				self.cmd_vel_pub.publish(self.twist)
 				time.sleep(0.5)
 		return TagImageResponse()
