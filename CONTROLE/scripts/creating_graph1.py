@@ -47,11 +47,16 @@ class subscriber_graph_map:
 
 
 	def choose_path(self, node):
-		'''
+	
+		length_min, aux, target = None
 		for index in range(self.non):
 			if (self.G.node[index]['ip']!=0):
-				
-		'''
+				length_min = nx.dijkstra_path_length(self.G, node, index, weight='weight')
+				if(lenght < aux):
+					aux = length_min
+					target = index
+		shortest_path = nx.dijkstra_path(self.G, node, target, weight='weight')
+		print(shortest_path)
 		request = self.G.node[node]['ip']
 		print("A interseção retornada é: "+str(request))
 		if(request!=0):
