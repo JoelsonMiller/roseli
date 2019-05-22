@@ -118,7 +118,7 @@ class ReadTag:
 		
 		else:
 			for i in range(len(separated)):
-				matchObj = re.match("\d\d\d.\d ", separated[i])				
+				matchObj = re.match("\d\d\d.\d", separated[i])				
 				if (matchObj == None):
 					rospy.logerr("It doesn't read a tag!")
 					return TagImageResponse
