@@ -114,18 +114,18 @@ class ReadTag:
 
 		if (not len(separated) == 3):
 			rospy.logerr("It doesn't read a tag!")
-			return TagImageResponse
+			return TagImageResponse()
 		
 		else:
 			for i in range(len(separated)):
 				matchObj = re.match("\d\d\d.\d", separated[i])				
 				if (matchObj == None):
 					rospy.logerr("It doesn't read a tag!")
-					return TagImageResponse
+					return TagImageResponse()
 				
 			if(not 0.0 <= float(separated[2]) <= 360.0):
 				rospy.logerr("It doesn't read a tag!")
-				return TagImageResponse
+				return TagImageResponse()
 			
 			self._pose2d_.x = float(separated[0])
 			self._pose2d_.y = float(separated[1])

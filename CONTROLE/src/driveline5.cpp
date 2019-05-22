@@ -186,8 +186,8 @@ void odom_move(float mag, int tipo_movimento){
 void points_sub(const roseli::PointVector::ConstPtr& points){
 
 	double rightside =0, rightside_center = 0, rightside_up = 0;
-	double leftside = 0, leftside_center = 0, lefside_up = 0;
-	double res, res_center, res_up;
+	double leftside = 0, leftside_center = 0, leftside_up = 0;
+	double res, res_center, res_up, median_points_up, median_points_center;
 	double dist;
 	float ang, down, center, adj, opt, adj_major, opt_major;
 	std_msgs::Float64 erro;
@@ -198,23 +198,24 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 	if(points->points_center.size()!=0){
 		//Abordagem utilizada por Daniel para seguir a linha
-		//leftside = abs(points->points_center[0].x);
-		//rightside = abs(width - points->points_center[1].x);
-		//res = leftside-rightside;
+		leftside = abs(points->points_center[0].x);
+		rightside = abs(width - points->points_center[1].x);
+		res = leftside-rightside;
 		
 		//Teste de uma segunda abordagem
-		leftside_center = abs(points->points_center[0].x);
+		/*leftside_center = abs(points->points_center[0].x);
 		rightside_center = abs(width - points->points_center[1].x);
 		res_center = leftside_center-rightside_center;
 		leftside_up = abs(points->points_up[0].x);
 		rightside_up = abs(width - points->points_up[1].x);
 		res_up = leftside_up-rightside_up;
-		res = (res_center+res_up_)/2;
+		res = (res_center+res_up)/2;*/
 		
 		//Teste de uma terceira abordagem
 		//median_points_center = (points->points_center[1].x - points->points_center[0].x)/2 ;
 		//median_points_up = (points->points_up[1].x - points->points_up[0].x)/2 ;
 		//res = median_points_up - median_points_center;
+		//res = -res;
 	}
 
 	//cout<<res<<endl;
@@ -225,7 +226,8 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 			move(0,0);
 
 	}else if((points->points_center.size() == 2)){
-		 if((points->points_center[1].x-points->points_center[0].x) > width/3){
+		median_points_center = (points->points_center[1].x-points->points_center[0].x);
+		 if((median_points_center > width/3)&&(median_points_center < 2*width/3)){
 			if((points->points_up.size() == 0) && (points->points_down.size() == 2)){
 				if(res < 0){
 					cout<<"Angulo de -90 graus"<<endl;
@@ -257,7 +259,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 					type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
 					if(type_move==0)
-						odom_move(1, 0);
+						odom_move(2, 0);
 					else{
 						odom_move(14, 0);
                                         	odom_move(-90, 1);
@@ -270,7 +272,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 					type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
 					if(type_move == 0){
-						odom_move(1,0);
+						odom_move(2,0);
 					}
 					else{
 						cout<<"I not supposed to be here!"<<endl;
@@ -281,20 +283,48 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 				}
 			}
-			else if(points->points_up.size() == 4){
-				cout<<"Interseção tipo: Y"<<endl;
+			
+	}
+	else if(median_points_center > 2*width/3){
+			if((points->points_up.size() == 0) && (points->points_down.size() == 2)){
+				cout<<"Interseção tipo: T"<<endl;
+				move(0,0);
+				usleep(1000000);
 				type_move = call_srv_map(1);
-				if(type_move==0){
+				if(!type_move){
 					odom_move(14, 0);
-					odom_move(30, 1);
+					odom_move(90, 1);
+					odom_move(-5.0, 0);
 				}
 				else{
 					odom_move(14, 0);
-                                        odom_move(-30, 1);
+					odom_move(-90, 1);
+					odom_move(-5.0, 0);
+				}
+			}
+			else if((points->points_up.size()==2)&&(points->points_down.size()==2)){
+				cout<<"Interseção tipo: +"<<endl;
+				move(0,0);
+				usleep(1000000);
+				type_move = call_srv_map(2);
+				if(!type_move)
+					odom_move(1, 0);
+
+				else if(type_move == 2){
+					odom_move(14, 0);
+					odom_move(90, 1);
+					odom_move(-5.0, 0);
+				}
+				else{
+					odom_move(14, 0);
+					odom_move(-90, 1);
+					odom_move(-5.0, 0);
 				}
 			}
 		}
-
+		
+			
+		
 		else{
 				//move(0.2, res/300);
 				//plot.data = res/350;
@@ -310,7 +340,12 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
                         	control_data = 0;
 		}
 
-	}else if(((points->points_center.size()==4)||(points->points_center.size()==5))&&((points->points_down.size()==5)||(points->points_down.size()==4))){
+	}
+	
+	else if(((points->points_center.size()==4)||(points->points_center.size()==5))&&((points->points_down.size()==5)||(points->points_down.size()==4))){
+		median_points_center = (points->points_center[2].x - points->points_center[1].x) ;
+		median_points_up = (points->points_up[2].x - points->points_up[1].x) ;
+		if(median_points_up < median_points_center){
 			if(points->points_center[0].x < width/5){
 				cout<<"Interseção do tipo /"<<endl;
 				move(0,0);
@@ -362,48 +397,24 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
                                 }
 
 			}
-	}
-	else if(points->points_center.size() == 1){
-		
-if(points->points_center[0].x > 4*width/5){
-			if((points->points_up.size() == 0) && (points->points_down.size() == 2)){
-				cout<<"Interseção tipo: T"<<endl;
-				move(0,0);
-				usleep(1000000);
-				type_move = call_srv_map(1);
-				if(!type_move){
-					odom_move(14, 0);
-					odom_move(90, 1);
-					odom_move(-5.0, 0);
-				}
-				else{
-					odom_move(14, 0);
-					odom_move(-90, 1);
-					odom_move(-5.0, 0);
-				}
+		}
+		else if(median_points_up > median_points_center){
+
+			cout<<"Interseção tipo: Y"<<endl;
+			move(0,0);
+			type_move = call_srv_map(1);
+			if(type_move==0){
+				odom_move(10, 0);
+				odom_move(30, 1);
 			}
-			else if((points->points_up.size()==2)&&(points->points_down.size()==2)){
-				cout<<"Interseção tipo: +"<<endl;
-				move(0,0);
-				usleep(1000000);
-				type_move = call_srv_map(2);
-				if(!type_move)
-					odom_move(1, 0);
-				else if(type_move == 2){
-					odom_move(14, 0);
-					odom_move(90, 1);
-					odom_move(-5.0, 0);
-				}
-				else{
-					odom_move(14, 0);
-					odom_move(-90, 1);
-					odom_move(-5.0, 0);
-				}
+			else{
+				odom_move(14, 0);
+                                odom_move(-30, 1);
 			}
 		}
-	
 	}
-}
+	
+}	
 
 };
 

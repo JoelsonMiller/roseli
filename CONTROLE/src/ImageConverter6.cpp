@@ -194,7 +194,7 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
                 }
 
 
-		if(p0.size()!=0){
+		if((p0.size()!=0)){
 			roseli::PointVector points;
 			points.points_center.clear();
 			points.points_up.clear();
@@ -243,7 +243,7 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 		//waitKey(1);
 		imshow("CONTOURS AND FOUND POINTS", drawingContours);
 		waitKey('c');
-			if(p0.size()==0){
+			if((p0.size()==0)){
 				ros::Rate rate(0.2);
 				cvtColor(img->image, image_HSV, CV_BGR2HSV);
                         	//inRange(image_HSV, Scalar(min_blue_frame, min_green_frame, min_red_frame),
