@@ -107,10 +107,14 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 	//morphologyEx(imgThresholder2, imgThresholder2, MORPH_CLOSE, element);
 	imshow("Imagem Threshold from GrayScaled Image", imgThresholder2);
         waitKey(4);
+	
+	// Solução para erro de detecção de bordas no lado esquerdo do frame
+	//--------------------------------------------------------------------
 	int y = 0;
 	for(int x = 0; x <imgThresholder2.rows; x++)
 		imgThresholder2.at<uchar>(x,y) = 0;
-
+	//---------------------------------------------------------------------
+	
 	findContours(imgThresholder2, imgContours, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
 
 
