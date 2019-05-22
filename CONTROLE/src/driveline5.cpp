@@ -185,9 +185,9 @@ void odom_move(float mag, int tipo_movimento){
 
 void points_sub(const roseli::PointVector::ConstPtr& points){
 
-	double rightside = 0;
-	double leftside = 0;
-	double res;
+	double rightside =0, rightside_center = 0, rightside_up = 0;
+	double leftside = 0, leftside_center = 0, lefside_up = 0;
+	double res, res_center, res_up;
 	double dist;
 	float ang, down, center, adj, opt, adj_major, opt_major;
 	std_msgs::Float64 erro;
@@ -197,10 +197,24 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 	int type_move;
 
 	if(points->points_center.size()!=0){
-
-		leftside = abs(points->points_center[0].x);
-		rightside = abs(width - points->points_center[1].x);
-		res = leftside-rightside;
+		//Abordagem utilizada por Daniel para seguir a linha
+		//leftside = abs(points->points_center[0].x);
+		//rightside = abs(width - points->points_center[1].x);
+		//res = leftside-rightside;
+		
+		//Teste de uma segunda abordagem
+		leftside_center = abs(points->points_center[0].x);
+		rightside_center = abs(width - points->points_center[1].x);
+		res_center = leftside_center-rightside_center;
+		leftside_up = abs(points->points_up[0].x);
+		rightside_up = abs(width - points->points_up[1].x);
+		res_up = leftside_up-rightside_up;
+		res = (res_center+res_up_)/2;
+		
+		//Teste de uma terceira abordagem
+		//median_points_center = (points->points_center[1].x - points->points_center[0].x)/2 ;
+		//median_points_up = (points->points_up[1].x - points->points_up[0].x)/2 ;
+		//res = median_points_up - median_points_center;
 	}
 
 	//cout<<res<<endl;
