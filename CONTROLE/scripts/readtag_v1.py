@@ -113,12 +113,20 @@ class ReadTag:
 		separated= text.split(' ')
 
 		if (not len(separated) == 3):
+			rospy.logerr("It doesn't read a tag!")
+			return TagImageResponse
+		
+		else:
 			for i in range(len(separated)):
 				matchObj = re.match("\d\d\d.\d ", separated[i])				
 				if (matchObj == None):
-					print("It doesn't read a tag!")
-
-		else:
+					rospy.logerr("It doesn't read a tag!")
+					return TagImageResponse
+				
+			if(not 0.0 <= float(separated[2]) <= 360.0):
+				rospy.logerr("It doesn't read a tag!")
+				return TagImageResponse
+			
 			self._pose2d_.x = float(separated[0])
 			self._pose2d_.y = float(separated[1])
 			self._pose2d_.theta = float(separated[2])
@@ -126,9 +134,9 @@ class ReadTag:
 			_resp_ = self.creating_map_client(self._pose2d_, 0)
 			flag = self.reset_enc_func()
 
-			self.twist.linear.x = 0.3
+			self.twist.linear.x = 0.2
 			self.twist.angular.z = 0
-			for x in range(0, 5):
+			for x in range(0, 4):
 				self.cmd_vel_pub.publish(self.twist)
 				time.sleep(0.5)
 		return TagImageResponse()
