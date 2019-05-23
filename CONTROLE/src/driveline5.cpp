@@ -198,9 +198,9 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 	if(points->points_center.size()!=0){
 		//Abordagem utilizada por Daniel para seguir a linha
-		median_points_center = (points->points_center[1].x - points->points_center[0].x)/2 ;
-		median_points_up = (points->points_up[1].x - points->points_up[0].x)/2 ;
-		diferent_median_points = median_points_up - median_points_center;
+		//median_points_center = (points->points_center[1].x - points->points_center[0].x)/2 ;
+		//median_points_up = (points->points_up[1].x - points->points_up[0].x)/2 ;
+		//diferent_median_points = median_points_up - median_points_center;
 		leftside = abs(points->points_center[0].x);
 		rightside = abs(width - points->points_center[1].x);
 		res = leftside-rightside;
@@ -333,25 +333,13 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				//plot.data = res/350;
 				//pid.publish(plot);
 			//Utilização de um PID para o controle de movimento do RoSeLi
-				if(ros::param::has("/pid/upper_limit")&&ros::param::has("/pid/lower_limit")){
-					if(different_median_points >= width/5){
-						ros::param::set("/pid/upper_limit", 0.8);
-						ros::param::set("/pid/lower_limit", 0.8);
-						usleep(1000);
-					}
-					else{
-						ros::param::set("/pid/upper_limit", 0.6);
-						ros::param::set("/pid/lower_limit", 0.6);
-						usleep(1000);
-					}
-				}
 				erro.data = -res;
 				setpoint.data = 0;
                         	pub_setpoint.publish(setpoint);
                         	usleep(20000);
                         	pub_state.publish(erro);
                         	usleep(20000);
-                        	move(0.15, control_data);
+                        	move(0.3 - control_data/2, control_data);
                         	control_data = 0;
 		}
 
