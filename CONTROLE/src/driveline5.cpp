@@ -34,6 +34,7 @@ float angulo=0;
 int height;
 int width;
 float control_data = 0;
+double pre_error =0 , integral=0, ant_secs=0;
 
 class Listener
 {
@@ -42,6 +43,33 @@ public:
 void receive_data_control(const std_msgs::Float64::ConstPtr& controller){
 	control_data = controller->data;
 	d.sleep();
+}
+	
+double pid(double pv, double setpoint, double Kp, double Ki, double Kd, double _max, double _min){
+	
+	double secs =ros::Time::now().toSec();
+	dt = secs - ant_secs;
+	
+	double error = setpoint - pv;
+	double Pout = Kp*error;
+	//proportional term
+	integral +=error*dt;
+	double Iout = Ki*integral;
+	
+	//integral term
+	double derivative = (error - pre_error)/dt;
+	double Dout = Kd*derivative;
+	
+	//derivate term
+	double data_control = Pout + Iout + Dout;
+	
+	if( data_control > _max )
+        	data_control = _max;
+    	else if( data_control < _min )
+        	data_control = _min;
+	
+	pre_error = error;
+	return data_control;
 }
 
 int call_srv_map(int interest_num){
@@ -204,21 +232,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 		leftside = abs(points->points_center[0].x);
 		rightside = abs(width - points->points_center[1].x);
 		res = leftside-rightside;
-		
-		//Teste de uma segunda abordagem
-		/*leftside_center = abs(points->points_center[0].x);
-		rightside_center = abs(width - points->points_center[1].x);
-		res_center = leftside_center-rightside_center;
-		leftside_up = abs(points->points_up[0].x);
-		rightside_up = abs(width - points->points_up[1].x);
-		res_up = leftside_up-rightside_up;
-		res = (res_center+res_up)/2;*/
-		
-		//Teste de uma terceira abordagem
-		//median_points_center = (points->points_center[1].x - points->points_center[0].x)/2 ;
-		//median_points_up = (points->points_up[1].x - points->points_up[0].x)/2 ;
-		//res = median_points_up - median_points_center;
-		//res = -res;
+	
 	}
 
 	//cout<<res<<endl;
@@ -333,6 +347,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				//plot.data = res/350;
 				//pid.publish(plot);
 			//Utilização de um PID para o controle de movimento do RoSeLi
+				//pid(); //Funcao teste a PID do ROS
 				erro.data = -res;
 				setpoint.data = 0;
                         	pub_setpoint.publish(setpoint);
