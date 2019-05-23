@@ -48,7 +48,7 @@ void receive_data_control(const std_msgs::Float64::ConstPtr& controller){
 double pid(double pv, double setpoint, double Kp, double Ki, double Kd, double _max, double _min){
 	
 	double secs =ros::Time::now().toSec();
-	dt = secs - ant_secs;
+	double dt = secs - ant_secs;
 	
 	double error = setpoint - pv;
 	double Pout = Kp*error;
@@ -215,7 +215,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 	double rightside =0, rightside_center = 0, rightside_up = 0;
 	double leftside = 0, leftside_center = 0, leftside_up = 0;
-	double res, res_center, res_up, median_points_up, median_points_center, diferent_median_points;
+	double res, res_center, res_up, median_points_up, median_points_center, different_median_points;
 	double dist;
 	float ang, down, center, adj, opt, adj_major, opt_major;
 	std_msgs::Float64 erro;
@@ -224,11 +224,13 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 	ros::Rate later(0.2);
 	int type_move;
 
-	if(points->points_center.size()!=0){
+	if(points->points_center.size()==2){
 		//Abordagem utilizada por Daniel para seguir a linha
-		//median_points_center = (points->points_center[1].x - points->points_center[0].x)/2 ;
-		//median_points_up = (points->points_up[1].x - points->points_up[0].x)/2 ;
-		//diferent_median_points = median_points_up - median_points_center;
+		if(points->points_up.size()!=0){
+			median_points_center = (points->points_center[1].x - points->points_center[0].x)/2 ;
+			median_points_up = (points->points_up[1].x - points->points_up[0].x)/2 ;
+			different_median_points = median_points_up - median_points_center;
+		}
 		leftside = abs(points->points_center[0].x);
 		rightside = abs(width - points->points_center[1].x);
 		res = leftside-rightside;
@@ -347,14 +349,27 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				//plot.data = res/350;
 				//pid.publish(plot);
 			//Utilização de um PID para o controle de movimento do RoSeLi
-				//pid(); //Funcao teste a PID do ROS
-				erro.data = -res;
+				control_data = pid(-res, 0, 0.003, 0, 0.008, 0.4, -0.4); //Funcao teste a PID do ROS
+				/*if(ros::param::has("/controller/Kp")){
+					if(different_median_points > width/5){
+						ros::param::set("/controller/Kp", 0.01);
+						ros::param::set("/controller/Kp", 0.01);
+						usleep(1000);				
+					}
+					else{
+						ros::param::set("/controller/Kp", 0.005);
+						ros::param::set("/controller/Kp", 0.005);
+						usleep(1000);					
+					}
+
+				}	*/			
+				/*erro.data = -res;
 				setpoint.data = 0;
                         	pub_setpoint.publish(setpoint);
                         	usleep(20000);
                         	pub_state.publish(erro);
-                        	usleep(20000);
-                        	move(0.3 - control_data/2, control_data);
+                        	usleep(20000);*/
+                        	move(0.15, control_data);
                         	control_data = 0;
 		}
 

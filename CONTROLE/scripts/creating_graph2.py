@@ -45,24 +45,28 @@ class subscriber_graph_map:
 			time.sleep(1)
                         pass
 
+	def nav_path(self):
+		
 
 	def choose_path(self, node):
 			
 		length_min = 0
 		aux = 0
 		target = 0
-		print("The lengths from the actual node from targets are: ")
+		print("The lengths from the actual node"+str(node)+" from targets are: ")
 		for index in range(self.non):
-			if (self.G.node[index]['ip']!=0):
+			if (self.G.node[index]['ip'] != 0 and index != node):
 				length_min = nx.dijkstra_path_length(self.G, node, index, weight='weight')
 				print(str(length_min))
 				if(length_min < aux):
 					aux = length_min
 					target = index
 		if(length_min != 0):
+			print("The target is: "+str(target))
 			shortest_path = nx.dijkstra_path(self.G, node, target, weight='weight')
 			print("The shortest path's length is: "+str(length_min))
 			print(shortest_path)
+			#self.nav_path()
 			
 		request = self.G.node[node]['ip']
 		print("A interseção retornada é: "+str(request))
@@ -114,11 +118,11 @@ class subscriber_graph_map:
 			self.plot_graph()
 		else:
 			if(not self.G.has_edge(self.past_node, node)):
-				print("i gonna add the edge between: "+str(self.past_node)+" e "+str(node))
+				#print("i gonna add the edge between: "+str(self.past_node)+" e "+str(node))
 				length = math.hypot(pose[node].x-pose[self.past_node].x, pose[node].y-pose[self.past_node].y)
 				self.G.add_edge(self.past_node , node, weight = length)
 				self.plot_graph()
-				self.past_node=node
+			self.past_node=node
 			request = self.choose_path(node)			
 
 		return CreateMapResponse(request)

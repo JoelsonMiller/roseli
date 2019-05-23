@@ -60,7 +60,7 @@ class ReadTag:
                 except rospy.ServiceException, e:
                         print "Service call failed: %s"%e
 			
-	def move_to_find_tag(self):
+	def move_to_read_tag(self):
 		for t in range(5):
 			self.twist.linear.x = -0.2
                 	self.twist.angular.z = 0
