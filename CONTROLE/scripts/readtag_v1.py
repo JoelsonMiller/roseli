@@ -27,7 +27,6 @@ class ReadTag:
 		self.range_param = Server(ocr_tagConfig, self.reconfigure)
 		self.string = String()
 		self._pose2d_ = Pose2D()
-		self.rate = rospy.Rate(1)
 
 	def reconfigure(self, config, level):
 		#print(config)
@@ -60,12 +59,20 @@ class ReadTag:
                         return reset(resp)
                 except rospy.ServiceException, e:
                         print "Service call failed: %s"%e
+			
+	def move_to_find_tag(self):
+		for t in range(5):
+			self.twist.linear.x = -0.2
+                	self.twist.angular.z = 0
+                	self.cmd_vel_pub.publish(self.twist)
+			time.sleep(1)
 
 	def image_callback (self, msg):
 		self.twist.linear.x = 0
                 self.twist.angular.z = 0
                 self.cmd_vel_pub.publish(self.twist)
-		self.rate.sleep()
+		_rate_ = rospy.Rate(1)
+		_rate_.sleep()
 		try:
 			img = self.bridge.imgmsg_to_cv2(msg.tag, "bgr8")
 		except cv_bridge.CvBridgeError as e:
@@ -114,6 +121,7 @@ class ReadTag:
 
 		if (not len(separated) == 3):
 			rospy.logerr("It doesn't read a tag!")
+			self.move_to_read_tag()
 			return TagImageResponse()
 		
 		else:
@@ -121,10 +129,12 @@ class ReadTag:
 				matchObj = re.match("\d\d\d.\d", separated[i])				
 				if (matchObj == None):
 					rospy.logerr("It doesn't read a tag!")
+					self.move_to_read_tag()
 					return TagImageResponse()
 				
 			if(not 0.0 <= float(separated[2]) <= 360.0):
 				rospy.logerr("It doesn't read a tag!")
+				self.move_to_read_tag()
 				return TagImageResponse()
 			
 			self._pose2d_.x = float(separated[0])
