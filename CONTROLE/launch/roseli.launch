@@ -7,6 +7,7 @@
            <param name="upper_limit" value = "0.6" />
            <param name="lower_limit" value = "-0.6" />
 	   <param name="cutoff_frequency" value = "1.0" />
+	   <param name="max_loop_frequency" value = "50.0" />
 	</node>
 	<node pkg="roseli" type="imageprocessor6" name="imageprocessor6" output="screen">
 		<param name="min_value_line" value = "18"/>
