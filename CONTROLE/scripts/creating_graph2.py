@@ -6,7 +6,7 @@ from roseli.srv import CreateMap, CreateMapResponse
 from roseli.srv import GetOdom, GetOdomResponse
 import networkx as nx
 import matplotlib
-matplotlib.use('Qt5Agg')
+matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 import time
 import math
@@ -45,7 +45,58 @@ class subscriber_graph_map:
 			time.sleep(1)
                         pass
 
-	def nav_path(self):
+	def nav_path(self, shortest_path, node):
+		
+		print("The next node to be rechead is: "+str(shortest_path[1]))
+		pose = nx.get_node_attributes(self.G, 'pose_graph')
+		_theta_ = pose[node].theta
+		
+		if( math.fabs( math.cos( _theta_ ) ) == 1):
+			print("Horizontal")
+			
+			if(pose[node].x < pose[shortest_path[1]].x):
+				if(_theta_ == 0.0):
+					print("Siga em frente")
+				else:
+					print("Vire 180")
+			elif(pose[node].x > pose[shortest_path[1]].x):
+				if(_theta_ == 180.0):
+					print("Siga em frente")
+				else:
+					print("Vire 180")	
+				
+		elif(math.fabs( math.sin( _theta_ ) ) == 1):
+			
+			print("Vertical")
+			if(pose[node].y < pose[shortest_path[1]].y):
+				if(_theta_ == 90.0):
+					print("Siga em frente")
+				else:
+					print("Vire 180")
+			elif(pose[node].x > pose[shortest_path[1]].x):
+				if(_theta_ == 270.0):
+					print("Siga em frente")
+				else:
+					print("Vire 180")
+
+		elif(math.sin(2*_theta_) > 0):
+			print("Diagonal /")
+			
+			if(mod_actual < mod_next):
+				if(_theta_ < 90 and _theta_ > 0):
+					print("Siga em frente")
+				else:
+					print("Vire 180")
+			elif(mod_actual > mod_next):
+				if(_theta_ <):
+					print("Siga em frente")
+				else:
+					print("Vire 180")
+		else:
+			print("Diagonal ")
+
+		
+			
 		return		
 
 	def choose_path(self, node):
@@ -67,7 +118,7 @@ class subscriber_graph_map:
 			shortest_path = nx.dijkstra_path(self.G, node, target, weight='weight')
 			print("The shortest path's length is: "+str(length_min))
 			print(shortest_path)
-			#self.nav_path()
+			self.nav_path(shortest_path, node)
 			
 		request = self.G.node[node]['ip']
 		print("A interseção retornada é: "+str(request))
