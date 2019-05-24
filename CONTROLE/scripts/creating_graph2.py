@@ -6,7 +6,7 @@ from roseli.srv import CreateMap, CreateMapResponse
 from roseli.srv import GetOdom, GetOdomResponse
 import networkx as nx
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('Qt5Agg')
 from matplotlib import pyplot as plt
 import time
 import math
@@ -46,21 +46,22 @@ class subscriber_graph_map:
                         pass
 
 	def nav_path(self):
-		
+		return		
 
 	def choose_path(self, node):
 			
 		length_min = 0
 		aux = 0
 		target = 0
-		print("The lengths from the actual node"+str(node)+" from targets are: ")
+		print("The lengths from the actual node "+str(node)+" from targets are: ")
 		for index in range(self.non):
 			if (self.G.node[index]['ip'] != 0 and index != node):
-				length_min = nx.dijkstra_path_length(self.G, node, index, weight='weight')
-				print(str(length_min))
-				if(length_min < aux):
-					aux = length_min
+				aux = nx.dijkstra_path_length(self.G, node, index, weight='weight')
+				print(str(aux)+" : to node "+str(index))
+				if(aux < length_min or length_min == 0):
+					length_min = aux
 					target = index
+
 		if(length_min != 0):
 			print("The target is: "+str(target))
 			shortest_path = nx.dijkstra_path(self.G, node, target, weight='weight')
