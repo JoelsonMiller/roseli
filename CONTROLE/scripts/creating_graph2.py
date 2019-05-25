@@ -50,7 +50,10 @@ class subscriber_graph_map:
 		print("The next node to be rechead is: "+str(shortest_path[1]))
 		pose = nx.get_node_attributes(self.G, 'pose_graph')
 		_theta_ = pose[node].theta
-		
+		if(_theta_ == float('inf')):
+			node == self.past_node
+			_theta_ = pose[node].theta
+
 		if( math.fabs( math.cos( _theta_ ) ) == 1):
 			print("Horizontal")
 			
@@ -81,20 +84,30 @@ class subscriber_graph_map:
 
 		elif(math.sin(2*_theta_) > 0):
 			print("Diagonal /")
-			
-			if(mod_actual < mod_next):
-				if(_theta_ < 90 and _theta_ > 0):
+			aux_ang = math.atan((pose[shortest_path[1]].y - pose[node].y)/(pose[shortest_path[1]].x - pose[node].x))
+			if(0 < aux_ang and aux_ang < math.pi/4):
+				if(0 < _theta_ and theta < 90.0 ):
 					print("Siga em frente")
 				else:
 					print("Vire 180")
-			elif(mod_actual > mod_next):
-				if(_theta_ <):
+			elif(math.pi/2 < aux_ang and aux_ang < 3*math.pi/4):
+				if(180.0 < _theta_ and theta < 270.0):
 					print("Siga em frente")
 				else:
 					print("Vire 180")
 		else:
 			print("Diagonal ")
-
+			aux_ang = math.atan((pose[shortest_path[1]].y - pose[node].y)/(pose[shortest_path[1]].x - pose[node].x))
+			if(math.pi/4 < aux_ang and aux_ang < math.pi/2):
+				if(90.0 < _theta_ and theta < 180.0 ):
+					print("Siga em frente")
+				else:
+					print("Vire 180")
+			elif(3*math.pi/4 < aux_ang and aux_ang < 2*math.pi):
+				if(270.0 < _theta_ and theta < 360.0):
+					print("Siga em frente")
+				else:
+					print("Vire 180")
 		
 			
 		return		

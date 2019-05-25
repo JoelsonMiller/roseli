@@ -14,7 +14,7 @@
 		<param name="min_value_line" value = "18"/>
 		<param name="max_value_line" value="255"/>
 	</node>
-	<node pkg="roseli" type="motordrive" name="motordrive" output="screen"/>
+	<!--node pkg="roseli" type="motordrive" name="motordrive" output="screen"/-->
 	<node pkg="image_transport" type="republish" name="republish" args="compressed in:=/raspicam_node/image raw out:=/raspicam_node/image" output="screen"/>
 	<node pkg="roseli" type="readtag_v1.py" name="readtag" output="screen"/>
         <node pkg="roseli" type="creating_graph2.py" name="creating_map" output="screen"/>

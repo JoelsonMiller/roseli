@@ -343,7 +343,6 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 		}
 		
 			
-		
 		else{
 				//move(0.2, res/300);
 				//plot.data = res/350;
@@ -378,7 +377,8 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 	else if(((points->points_center.size()==4)||(points->points_center.size()==5))&&((points->points_down.size()==5)||(points->points_down.size()==4))){
 		median_points_center = (points->points_center[2].x - points->points_center[1].x) ;
 		median_points_up = (points->points_up[2].x - points->points_up[1].x) ;
-		if(median_points_up < median_points_center){
+		//if(median_points_up < median_points_center){
+		//if(points->points_up.size()==2){
 			if(points->points_center[0].x < width/5){
 				cout<<"Interseção do tipo /"<<endl;
 				move(0,0);
@@ -430,8 +430,12 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
                                 }
 
 			}
-		}
-		else if(median_points_up > median_points_center){
+		//}
+	}
+	else if(((points->points_center.size()==4)||(points->points_center.size()==5))&&((points->points_up.size()==5)||(points->points_up.size()==4))&&(points->points_down.size()==2)){
+		median_points_center = (points->points_center[2].x - points->points_center[1].x) ;
+		median_points_up = (points->points_up[2].x - points->points_up[1].x) ;
+		if(median_points_up > median_points_center){
 
 			cout<<"Interseção tipo: Y"<<endl;
 			move(0,0);
@@ -442,9 +446,17 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 			}
 			else{
 				odom_move(14, 0);
-                                odom_move(-30, 1);
+                        	odom_move(-30, 1);
 			}
 		}
+	}
+	else if (((points->points_center.size()==4)||(points->points_center.size()==5))&&((points->points_down.size()==5)||(points->points_down.size()==4))&&(points->points_up.size()==2)){
+		if((points->points_up[1].x-points->points_up[0].x)<width/3){
+			cout<<"Interseção tipo: Y da direita"<<endl;
+			move(0,0);
+		}
+
+		
 	}
 	
 }	
