@@ -90,7 +90,6 @@ int call_srv_map(int interest_num){
         else{
         	ROS_ERROR("Failed to call service CreateMap");
                 exit(0);
-		return 0;
         }
 }
 
@@ -309,7 +308,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 			}
 			else if((points->points_up.size() == 0)&&((points->points_down.size() == 4)||(points->points_down.size() == 5))){
 				median_points_center = (points->points_center[2].x - points->points_center[1].x) ;
-				//if(median_points_up < median_points_center){
+				if(median_points_up < median_points_center){
 				//if(points->points_up.size()==2){
 				if(points->points_center[0].x < width/5){
 					cout<<"Interseção do tipo /"<<endl;
@@ -362,7 +361,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
                                	 	}
 
 				}
-		//}
+		}
 			}
 		}
 		else if(median_points_center > 2*width/3){
@@ -429,7 +428,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
                         	usleep(20000);
                         	pub_state.publish(erro);
                         	usleep(20000);*/
-                        	move(0.15, control_data);
+                        	move(0.07, control_data);
                         	control_data = 0;
 		}
 
@@ -489,7 +488,14 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				
 
 	}
-	
+//-----------------------------------------------------------------------
+//====== Parte que resolve problema do robô parar quando encontra o padrão de existencia de 4 pontos na linha de cima, do meio e embaixo
+
+	else if((points->points_up.size() == 4)&&(points->points_center.size() == 4)&&(points->points_down.size() == 4)){
+		move(0.07, 0);
+
+	}
+//-----------------------------------------------------------------------
 }	
 
 };

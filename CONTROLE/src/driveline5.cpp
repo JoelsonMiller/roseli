@@ -219,7 +219,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 	double rightside =0, rightside_center = 0, rightside_up = 0;
 	double leftside = 0, leftside_center = 0, leftside_up = 0;
-	double res, res_center, res_up, median_points_up, median_points_center, different_median_points;
+	double res, res_center, res_up, median_points_up, median_points_center, different_median_points, median_points_down;
 	double dist;
 	float ang, down, center, adj, opt, adj_major, opt_major;
 	std_msgs::Float64 erro;
@@ -377,11 +377,43 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 		}
 
 	}
+
 	
 	else if(((points->points_center.size()==4)||(points->points_center.size()==5))&&((points->points_down.size()==5)||(points->points_down.size()==4))){
+	
+
 		median_points_center = (points->points_center[2].x - points->points_center[1].x) ;
-		median_points_up = (points->points_up[2].x - points->points_up[1].x) ;
-		//if(median_points_up < median_points_center){
+		median_points_down = (points->points_down[2].x - points->points_down[1].x) ;
+		
+		if(points->points_up.size()==2){
+			if((points->points_up[1].x-points->points_up[0].x)<width/3){
+				cout<<"Interseção tipo: Y da direita"<<endl;
+				move(0,0);
+				type_move = call_srv_map(1);
+				if(type_move==0){
+					odom_move(10, 0);
+					odom_move(-30, 1);
+				}
+				else{
+					odom_move(14, 0);
+                        		odom_move(120, 1);
+				}
+			}
+			else if((points->points_up[1].x-points->points_up[0].x) > width/2){
+				cout<<"Interseção tipo: Y da esquerda"<<endl;
+				move(0,0);
+				type_move = call_srv_map(1);
+				if(type_move==0){
+					odom_move(10, 0);
+					odom_move(30, 1);
+				}
+				else{
+					odom_move(14, 0);
+                        		odom_move(-120, 1);
+				}
+			}
+		}
+		else if(median_points_center < median_points_down){
 		//if(points->points_up.size()==2){
 			if(points->points_center[0].x < width/5){
 				cout<<"Interseção do tipo /"<<endl;
@@ -434,7 +466,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
                                 }
 
 			}
-		//}
+		}
 	}
 	else if(((points->points_center.size()==4)||(points->points_center.size()==5))&&((points->points_up.size()==5)||(points->points_up.size()==4))&&(points->points_down.size()==2)){
 		median_points_center = (points->points_center[2].x - points->points_center[1].x) ;
@@ -454,14 +486,17 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 			}
 		}
 	}
-	else if (((points->points_center.size()==4)||(points->points_center.size()==5))&&((points->points_down.size()==5)||(points->points_down.size()==4))&&(points->points_up.size()==2)){
-		if((points->points_up[1].x-points->points_up[0].x)<width/3){
-			cout<<"Interseção tipo: Y da direita"<<endl;
-			move(0,0);
-		}
+	
 
-		
+//-----------------------------------------------------------------------
+//====== Parte que resolve problema do robô parar quando encontra o padrão de existencia de 4 pontos na linha de cima, do meio e embaixo
+
+	else if((points->points_up.size() == 4)&&(points->points_center.size() == 4)&&(points->points_down.size() == 4)){
+		move(0.07, 0);
+
 	}
+//-----------------------------------------------------------------------
+
 	
 }	
 
