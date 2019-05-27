@@ -137,7 +137,12 @@ class subscriber_graph_map:
 			shortest_path = nx.dijkstra_path(self.G, node, target, weight='weight')
 			print("The shortest path's length is: "+str(length_min))
 			print(shortest_path)
-			resquest = self.nav_path(shortest_path, node)
+			response = self.nav_path(shortest_path, node)
+		
+		if(response == None):
+			
+		elif(response < 0):
+			request = response
 
 		return request
 	

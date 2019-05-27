@@ -13,7 +13,7 @@ import time
 from roseli.srv import CreateMap, CreateMapRequest
 from roseli.srv import TagImage, TagImageResponse
 from roseli.srv import ResetEnc, ResetEncRequest
-from roseli.srv import GetOdom, GetOdomRequest
+from roseli.srv import GetOdom, GetOdomResquest
 from dynamic_reconfigure.server import Server
 from roseli.cfg import ocr_tagConfig
 import re

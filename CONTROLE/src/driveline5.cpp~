@@ -85,7 +85,11 @@ int call_srv_map(int interest_num){
 	cm.request.intr_pnt_brd = interest_num;
         if (client.call(cm)){
         	cout<<"Intercao e: "<<cm.response.intr_pnt_graph<< endl;;
-		return cm.response.intr_pnt_graph;
+		if(cm.response.intr_pnt_graph < 0){
+			odom_move(170, 1);
+			odom_move(17, 0);
+		}
+        	return cm.response.intr_pnt_graph;
 	}
         else{
         	ROS_ERROR("Failed to call service CreateMap");

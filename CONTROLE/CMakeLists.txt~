@@ -155,7 +155,7 @@ add_library(ImageConverter src/ImageConverter.h
  #add_executable(imageprocessor1 src/ImageConverter.cpp src/main.cpp)
  add_executable(imageprocessor6 src/ImageConverter6.cpp src/main.cpp)
  #add_executable(motordrive1 src/driveline.cpp)
- add_executable(motordrive src/driveline6.cpp)
+ add_executable(motordrive src/driveline5.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

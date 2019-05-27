@@ -179,7 +179,7 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 
 		for(int index = 0; index<it1.count; index++){
                         if(points1[index].x !=0){
-                                circle(drawingContours, points1[index], 10, Scalar(104,232,244),1,8);
+                                circle(drawingContours, points1[index], 10, Scalar(255,255,0),1,8);
                                 //position.push_back(index);
                                 p1.push_back(points1[index]);
                         }
