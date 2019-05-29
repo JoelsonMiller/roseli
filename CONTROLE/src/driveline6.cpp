@@ -76,6 +76,8 @@ double pid(double pv, double setpoint, double Kp, double Ki, double Kd, double _
 	return data_control;
 }
 
+//==================================================================================================================
+
 int call_srv_map(int interest_num){
 
 	roseli::CreateMap cm;
@@ -93,57 +95,9 @@ int call_srv_map(int interest_num){
         }
 }
 
-/*void read_encoder(const geometry_msgs::Pose2D::ConstPtr& msg){
-	mutex.lock();
-	distancia = msg->x;
-	angulo = msg->theta;
-	mutex.unlock();
-	d.sleep();
-}*/
-
 void odom_move(float mag, int tipo_movimento){
 
-/*	float  dist;
-	int flag;
-	pub_enc.publish(reset);
-
-	if( mag > 0)
-		flag = 1;
-	else
-		flag = -1;
-
-        while(1){
-        	if( (angulo != 0) && (distancia != 0) ){
-                	cout<<"Resetando"<<endl;
-                       	pub_enc.publish(reset);
-                }
-                else
-                     break;
-                usleep(1000000);
-        }
-        //Continua o programa apenas quando as variaveis angulo e distanica
-        // forem resetadas
-	if(tipo_movimento == 0){ // 0 == distância e 1 == angulo
-                do{
-			mutex.lock();
-			dist = distancia;
-			mutex.unlock();
-                	move(flag*0.07, 0);
-			cout<<"distancia percorrida até agora: "<<distancia<<endl;
-		}while(dist <= abs(mag));
-                cout<<"I reached the goal (distance)"<<endl;
-		usleep(100000);
-                move(0,0);
-	}
-	else if (tipo_movimento == 1){
-		while(angulo <= abs(mag)){
-                        move(0, flag*0.07);
-			//cout<<"angulo girado até agora: "<<angulo<<endl;
-		}
-                cout<<"I reached the goal (angulo)"<<endl;
-                usleep(100000);
-		move(0,0);
-	}*/
+	
 	int flag;
 	roseli::GetOdom getodom;
 	roseli::ResetEnc resetenc;
@@ -219,9 +173,9 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 	double rightside =0, rightside_center = 0, rightside_up = 0;
 	double leftside = 0, leftside_center = 0, leftside_up = 0;
-	double res, res_center, res_up, median_points_up, median_points_center, different_median_points;
+	double res, res_center, res_up, median_points_up, median_points_up_up, median_points_center, different_median_points, median_points_down;
 	double dist;
-	float ang, down, center, adj, opt, adj_major, opt_major;
+	float ang, p1, p2, adj, opt, adj_major, opt_major;
 	std_msgs::Float64 erro;
         std_msgs::Float64 setpoint;
 	ros::Rate rate(0.5);
@@ -230,11 +184,11 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 	if(points->points_center.size()==2){
 		//Abordagem utilizada por Daniel para seguir a linha
-		if(points->points_up.size()!=0){
+		/*if(points->points_up.size()!=0){
 			median_points_center = (points->points_center[1].x - points->points_center[0].x)/2 ;
 			median_points_up = (points->points_up[1].x - points->points_up[0].x)/2 ;
 			different_median_points = median_points_up - median_points_center;
-		}
+		}*/
 		leftside = abs(points->points_center[0].x);
 		rightside = abs(width - points->points_center[1].x);
 		res = leftside-rightside;
@@ -306,63 +260,121 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 				}
 			}
-			else if((points->points_up.size() == 0)&&((points->points_down.size() == 4)||(points->points_down.size() == 5))){
-				median_points_center = (points->points_center[2].x - points->points_center[1].x) ;
-				if(median_points_up < median_points_center){
-				//if(points->points_up.size()==2){
-				if(points->points_center[0].x < width/5){
-					cout<<"Interseção do tipo /"<<endl;
+
+			else if((points->points_up_up.size() == 2) &&
+					(points->points_up.size() == 2) &&
+						(points->points_down.size()==4) &&
+							(points->points_down_down.size()==4)){
+
+				if((points->points_up_up[1].x-points->points_up_up[0].x)/2 < width/2){
+					cout<<"Interseção tipo: Y da direita"<<endl;
 					move(0,0);
-
-					adj = height/4;
-					down = points->points_down[2].x;
-					center = points->points_center[1].x;
-					opt = abs(down - center);
-					//opt_major = points->points_center[2].x - points->points_center[1].x;
-					ang = atan(opt/adj)*180/PI;
-					//adj_major = opt_major/tan(ang*PI/180);
-					ROS_INFO("O angulo da curva :%f", ang);
-					usleep(10000);
-
-					type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
-
+					type_move = call_srv_map(1);
 					if(type_move==0){
-						odom_move(16, 0);
-						odom_move(-80, 1);
+						odom_move(10, 0);
+						odom_move(-30, 1);
 					}
 					else{
-						odom_move(16, 0);
-						odom_move(-170+ang, 1);
+						odom_move(14, 0);
+		                		odom_move(120, 1);
 					}
 				}
-				else{
-					cout<<"Interseção do tipo / (invertida)"<<endl;
-					move(0,0); // para o robô
-					adj = height/4;
-					down = points->points_down[2].x;
-					center = points->points_down[1].x;
-					opt = abs(down - center);
-					//opt_major = points->points_center[2].x - points->points_center[1].x;
-					ang = atan(opt/adj)*180/PI;
-					//adj_major = opt_major/tan(ang*PI/180);
-					ROS_INFO("O angulo da curva :%f", ang);
+				else if((points->points_up_up[1].x-points->points_up_up[0].x)/2 > width/2){
+					cout<<"Interseção tipo: Y da esquerda"<<endl;
 					move(0,0);
-					usleep(1000000);
-
-					type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
-
+					type_move = call_srv_map(1);
 					if(type_move==0){
-                                        	odom_move(16, 0);
-                                        	odom_move(80, 1);
-                                	}
-                                	else{
-                                        	odom_move(16, 0);
-                                        	odom_move(170-ang, 1);
-                               	 	}
-
+						odom_move(10, 0);
+						odom_move(30, 1);
+					}
+					else{
+						odom_move(14, 0);
+		                		odom_move(-120, 1);
+					}
 				}
-		}
+
 			}
+
+			else if((points->points_up_up.size()==4) &&
+					(points->points_up.size() == 4) &&
+						(points->points_down.size() == 2)){
+				
+				median_points_up_up = (points->points_up_up[2].x - points->points_up_up[1].x) ;
+				median_points_up = (points->points_up[2].x - points->points_up[1].x) ;
+				if(median_points_up_up > median_points_up){
+
+					cout<<"Interseção tipo: Y"<<endl;
+					move(0,0);
+					type_move = call_srv_map(1);
+					if(type_move==0){
+						odom_move(10, 0);
+						odom_move(30, 1);
+					}
+					else{
+						odom_move(14, 0);
+				        	odom_move(-30, 1);
+					}
+				}
+
+			}
+			else if((points->points_up_up.size() == 0) &&
+					(points->points_up.size() ==0) &&
+						(points->points_down.size() == 4) &&
+							(points->points_down_down.size() == 4)){
+			
+				if(points->points_center[0].x < width/5){
+						cout<<"Interseção do tipo /"<<endl;
+						move(0,0);
+
+						adj = height/4;
+						p1 = points->points_down_down[1].x;
+						p2 = points->points_down[1].x;
+						opt = abs(p1 - p2);
+						ang = atan(opt/adj)*180/PI;
+						ROS_INFO("O angulo da curva :%f", ang);
+						usleep(10000);
+
+						type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
+
+						if(type_move==0){
+							odom_move(16, 0);
+							odom_move(-80, 1);
+						}
+						else{
+							odom_move(16, 0);
+							odom_move(-170+ang, 1);
+						}
+					}
+					else{
+						cout<<"Interseção do tipo / (invertida)"<<endl;
+						move(0,0); // para o robô
+						adj = height/4;
+						p1 = points->points_down_down[2].x;
+						p2 = points->points_down[2].x;
+						opt = abs(p1 - p2);
+						//opt_major = points->points_center[2].x - points->points_center[1].x;
+						ang = atan(opt/adj)*180/PI;
+						//adj_major = opt_major/tan(ang*PI/180);
+						ROS_INFO("O angulo da curva :%f", ang);
+						move(0,0);
+						usleep(1000000);
+
+						type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
+
+						if(type_move==0){
+				                        odom_move(16, 0);
+				                        odom_move(80, 1);
+				                }
+				                else{
+				                        odom_move(16, 0);
+				                        odom_move(170-ang, 1);
+				                }
+
+					}
+
+				
+			}
+			
 		}
 		else if(median_points_center > 2*width/3){
 			if((points->points_up.size() == 0) && (points->points_down.size() == 2)){
@@ -428,74 +440,33 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
                         	usleep(20000);
                         	pub_state.publish(erro);
                         	usleep(20000);*/
-                        	move(0.07, control_data);
+                        	move(0.15, control_data);
                         	control_data = 0;
 		}
 
 	}
-	
-	else if(((points->points_center.size()==4)||(points->points_center.size()==5))&&((points->points_up.size()==5)||(points->points_up.size()==4))&&(points->points_down.size()==2)){
-		median_points_center = (points->points_center[2].x - points->points_center[1].x) ;
-		median_points_up = (points->points_up[2].x - points->points_up[1].x) ;
-		if(median_points_up > median_points_center){
 
-			cout<<"Interseção tipo: Y"<<endl;
-			move(0,0);
-			type_move = call_srv_map(1);
-			if(type_move==0){
-				odom_move(10, 0);
-				odom_move(30, 1);
-			}
-			else{
-				odom_move(14, 0);
-                        	odom_move(-30, 1);
-			}
-		}
-	}
-	else if (((points->points_center.size()==4)||(points->points_center.size()==5))&&((points->points_down.size()==5)||(points->points_down.size()==4))&&(points->points_up.size()==2)){
-		if((points->points_up[1].x-points->points_up[0].x)<width/2){
-			cout<<"Interseção tipo: Y da direita"<<endl;
-			move(0,0);
-			type_move = call_srv_map(1);
-			if(type_move==0){
-				odom_move(10, 0);
-				odom_move(-30, 1);
-			}
-			else{
-				odom_move(14, 0);
-                        	odom_move(120, 1);
-			}
-		}
-		else if((points->points_up[1].x-points->points_up[0].x) > width/2){
-			cout<<"Interseção tipo: Y da esquerda"<<endl;
-			move(0,0);
-			type_move = call_srv_map(1);
-			if(type_move==0){
-				odom_move(10, 0);
-				odom_move(30, 1);
-			}
-			else{
-				odom_move(14, 0);
-                        	odom_move(-120, 1);
-			}
-		}
-
+	else if((points->points_up_up.size() ==0) &&
+			(points->points_up.size() ==2) &&
+				(points->points_down.size() == 6)){
+		cout<<"Interseção do tipo: Seta"<<endl;
+		move(0,0);
+		usleep(2000000);
 		
 	}
-	else if((points->points_down.size()==6)&&(points->points_up.size()==0)){
-		cout<<"A interseçâo tipo: Seta"<<endl;
-		move(0,0);
-				
 
-	}
+
 //-----------------------------------------------------------------------
 //====== Parte que resolve problema do robô parar quando encontra o padrão de existencia de 4 pontos na linha de cima, do meio e embaixo
 
-	else if((points->points_up.size() == 4)&&(points->points_center.size() == 4)&&(points->points_down.size() == 4)){
+	else if((points->points_center.size() == 4)){
 		move(0.07, 0);
 
 	}
 //-----------------------------------------------------------------------
+
+
+
 }	
 
 };
