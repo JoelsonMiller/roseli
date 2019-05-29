@@ -10,8 +10,8 @@
 	   <param name="max_loop_frequency" value = "1000.0" />
 	   <param name="min_loop_frequency" value = "1.0" />
 	</node-->
-	<node pkg="roseli" type="imageprocessor6" name="imageprocessor6" output="screen">
-		<param name="min_value_line" value = "18"/>
+	<node pkg="roseli" type="imageprocessor7" name="imageprocessor7" output="screen">
+		<param name="min_value_line" value = "30"/>
 		<param name="max_value_line" value="255"/>
 	</node>
 	<node pkg="roseli" type="motordrive" name="motordrive" output="screen"/>

@@ -29,12 +29,12 @@ static const std::string OPENCV_WINDOW = "Image window";
 
   ImageConverter::ImageConverter()
 		: imageTransport(nh){
-  		imageSubscriber = imageTransport.subscribe("/raspicam_node/image", 1, &ImageConverter::imageCallback, this);
+  		imageSubscriber = imageTransport.subscribe("/raspicam_node/image", 10, &ImageConverter::imageCallback, this);
 		imageClient = nh.serviceClient<roseli::TagImage>("/cropTag");
 		pub_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     		pub_points = nh.advertise<roseli::PointVector>("line/points", 1);
 		//namedWindow(OPENCV_WINDOW);
-		nh.param("/raspicam_node/height", height, 250);
+		nh.param("/raspicam_node/height", height, 300);
 		nh.param("/raspicam_node/width", width, 350);
 		f = boost::bind(&ImageConverter::callback_reconfigure, this, _1, _2);
 		server.setCallback(f);
@@ -93,15 +93,17 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
         waitKey(8);*/
 
 	int closing_type = MORPH_RECT;
-	int closing_size = 5;
+	int closing_size = 6;
 	element = getStructuringElement(closing_type, Size(2*closing_size+1, 2*closing_size+1), Point(closing_size, closing_size));
+	int eroding_size = 1;
+	Mat element_teste = getStructuringElement(closing_type, Size(2*eroding_size+1, 2*eroding_size+1), Point(eroding_size, eroding_size));
 	cvtColor(dst, imgGrayScaled, CV_RGB2GRAY);
 	//imshow("Imagem em GrayScaled", imgGrayScaled);
         //waitKey(6);
-	//threshold( imgGrayScaled, imgThresholder2, min_value_line, max_value_line, 1);
-	adaptiveThreshold(imgGrayScaled, imgThresholder2, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 75, 20);
+	threshold( imgGrayScaled, imgThresholder2, min_value_line, max_value_line, 1);
+	//adaptiveThreshold(imgGrayScaled, imgThresholder2, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 75, 20);
 	morphologyEx(imgThresholder2, imgThresholder2, MORPH_OPEN, element);
-	//morphologyEx(imgThresholder2, imgThresholder2, MORPH_CLOSE, element);
+	morphologyEx(imgThresholder2, imgThresholder2, MORPH_ERODE, element_teste);
 	imshow("Imagem Threshold from GrayScaled Image", imgThresholder2);
         waitKey(4);
 	
@@ -132,10 +134,10 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 		//iterate through a line in the middle of the screen to find its values
 		//}
 		LineIterator it0(drawingContours, Point(0, height/2), Point(width, height/2), 8);
-		LineIterator it1(drawingContours, Point(0, height/6), Point(width, height/6), 8);
-		LineIterator it2(drawingContours, Point(0, 5*height/6), Point(width, 5*height/6), 8);
-		LineIterator it3(drawingContours, Point(0, height/3), Point(width, height/3), 8);
-		LineIterator it4(drawingContours, Point(0, 2*height/3), Point(width, 2*height/3), 8);
+		LineIterator it1(drawingContours, Point(0, height/3), Point(width, height/3), 8);
+		LineIterator it2(drawingContours, Point(0, 2*height/3), Point(width, 2*height/3), 8);
+		LineIterator it3(drawingContours, Point(0, height/6), Point(width, height/6), 8);
+		LineIterator it4(drawingContours, Point(0, 5*height/6), Point(width, 5*height/6), 8);
 		//cout<<"erro LineIterator"<<endl;
 		//variable to recieve found points coordinates
 		
@@ -227,7 +229,7 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 
 		for(int index = 0; index<it3.count; index++){
                         if(points3[index].x !=0){
-                                circle(drawingContours, points3[index], 10, Scalar(104,232,244),1,8);
+                                circle(drawingContours, points3[index], 10, Scalar(0,165,255),1,8);
                                 //position.push_back(index);
                                 p3.push_back(points3[index]);
                         }
@@ -235,7 +237,7 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 
 		for(int index = 0; index<it4.count; index++){
                         if(points4[index].x !=0){
-                                circle(drawingContours, points4[index], 10, Scalar(0,255,0),1,8);
+                                circle(drawingContours, points4[index], 10, Scalar(174,28,255),1,8);
                                 //position.push_back(index);
                                 p4.push_back(points4[index]);
                         }
@@ -278,7 +280,7 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
                                 point_aux2.y=(*it2).y;
                                 point_aux2.z=0;
                                 points.points_down.push_back(point_aux2);
-                        i1++;
+                        i2++;
                         }
 
 			int i3=0;

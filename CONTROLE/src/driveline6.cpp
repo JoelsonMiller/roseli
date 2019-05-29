@@ -204,8 +204,121 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 	}else if((points->points_center.size() == 2)){
 		median_points_center = (points->points_center[1].x-points->points_center[0].x);
-		 if((median_points_center > width/3)&&(median_points_center < 2*width/3)){
-			if((points->points_up.size() == 0) && (points->points_down.size() == 2)){
+		
+		if((points->points_up_up.size()==4) &&
+				(points->points_up.size() == 4) &&
+					(points->points_down.size() == 2)){
+			
+			median_points_up_up = (points->points_up_up[2].x - points->points_up_up[1].x) ;
+			median_points_up = (points->points_up[2].x - points->points_up[1].x) ;
+			//cout<<"I could came here!"<<endl;
+			if(median_points_up_up > median_points_up){
+				cout<<"Interseção tipo: Y"<<endl;
+				move(0,0);
+				type_move = call_srv_map(1);
+				if(type_move==0){
+					odom_move(10, 0);
+					odom_move(30, 1);
+				}
+				else{
+					odom_move(14, 0);
+					odom_move(-30, 1);
+				}
+			}
+
+		}
+
+		else if((points->points_up_up.size() == 2) &&
+				(points->points_up.size() == 2) &&
+					(points->points_down_down.size()>=4)){
+			
+			if(points->points_down_down[4].x-points->points_down_down[0].x > width/3){
+				if((points->points_up_up[1].x-points->points_up_up[0].x)/2 + points->points_up_up[0].x < width/2){
+					cout<<"Interseção tipo: Y da direita"<<endl;
+					move(0,0);
+					type_move = call_srv_map(1);
+					if(type_move==0){
+						odom_move(10, 0);
+						odom_move(-30, 1);
+					}
+					else{
+						odom_move(14, 0);
+						odom_move(120, 1);
+					}
+				}
+				else if((points->points_up_up[1].x-points->points_up_up[0].x)/2 + points->points_up_up[0].x > width/2){
+					cout<<"Interseção tipo: Y da esquerda"<<endl;
+					move(0,0);
+					type_move = call_srv_map(1);
+					if(type_move==0){
+						odom_move(10, 0);
+						odom_move(30, 1);
+					}
+					else{
+						odom_move(14, 0);
+						odom_move(-120, 1);
+					}
+				}
+			}	
+
+		}
+		
+
+		else if((points->points_up_up.size() == 0) &&
+				(points->points_down.size() >= 4 )&&
+					(points->points_down_down.size() >= 4)){
+			if(points->points_center[0].x < width/5){
+					cout<<"Interseção do tipo /"<<endl;
+					move(0,0);
+
+					adj = height/4;
+					p1 = points->points_down_down[1].x;
+					p2 = points->points_down[1].x;
+					opt = abs(p1 - p2);
+					ang = atan(opt/adj)*180/PI;
+					ROS_INFO("O angulo da curva :%f", ang);
+					usleep(10000);
+
+					type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
+
+					if(type_move==0){
+						odom_move(16, 0);
+						odom_move(-80, 1);
+					}
+					else{
+						odom_move(16, 0);
+						odom_move(-170+ang, 1);
+					}
+				}
+				else{
+					cout<<"Interseção do tipo / (invertida)"<<endl;
+					move(0,0); // para o robô
+					adj = height/4;
+					p1 = points->points_down_down[2].x;
+					p2 = points->points_down[2].x;
+					opt = abs(p1 - p2);
+					//opt_major = points->points_center[2].x - points->points_center[1].x;
+					ang = atan(opt/adj)*180/PI;
+					//adj_major = opt_major/tan(ang*PI/180);
+					ROS_INFO("O angulo da curva :%f", ang);
+					move(0,0);
+					usleep(1000000);
+
+					type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
+
+					if(type_move==0){
+			                        odom_move(16, 0);
+			                        odom_move(80, 1);
+			                }
+			                else{
+			                        odom_move(16, 0);
+			                        odom_move(170-ang, 1);
+			                }
+
+				}	
+		}
+		else if((median_points_center > width/3)&&(median_points_center < 2*width/3)){
+			if((points->points_up.size() == 0) && (points->points_down.size() == 2)&&(points->points_down_down.size()==2)){
 				if(res < 0){
 					cout<<"Angulo de -90 graus"<<endl;
 					move(0,0);
@@ -261,119 +374,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				}
 			}
 
-			else if((points->points_up_up.size() == 2) &&
-					(points->points_up.size() == 2) &&
-						(points->points_down.size()==4) &&
-							(points->points_down_down.size()==4)){
 
-				if((points->points_up_up[1].x-points->points_up_up[0].x)/2 < width/2){
-					cout<<"Interseção tipo: Y da direita"<<endl;
-					move(0,0);
-					type_move = call_srv_map(1);
-					if(type_move==0){
-						odom_move(10, 0);
-						odom_move(-30, 1);
-					}
-					else{
-						odom_move(14, 0);
-		                		odom_move(120, 1);
-					}
-				}
-				else if((points->points_up_up[1].x-points->points_up_up[0].x)/2 > width/2){
-					cout<<"Interseção tipo: Y da esquerda"<<endl;
-					move(0,0);
-					type_move = call_srv_map(1);
-					if(type_move==0){
-						odom_move(10, 0);
-						odom_move(30, 1);
-					}
-					else{
-						odom_move(14, 0);
-		                		odom_move(-120, 1);
-					}
-				}
-
-			}
-
-			else if((points->points_up_up.size()==4) &&
-					(points->points_up.size() == 4) &&
-						(points->points_down.size() == 2)){
-				
-				median_points_up_up = (points->points_up_up[2].x - points->points_up_up[1].x) ;
-				median_points_up = (points->points_up[2].x - points->points_up[1].x) ;
-				if(median_points_up_up > median_points_up){
-
-					cout<<"Interseção tipo: Y"<<endl;
-					move(0,0);
-					type_move = call_srv_map(1);
-					if(type_move==0){
-						odom_move(10, 0);
-						odom_move(30, 1);
-					}
-					else{
-						odom_move(14, 0);
-				        	odom_move(-30, 1);
-					}
-				}
-
-			}
-			else if((points->points_up_up.size() == 0) &&
-					(points->points_up.size() ==0) &&
-						(points->points_down.size() == 4) &&
-							(points->points_down_down.size() == 4)){
-			
-				if(points->points_center[0].x < width/5){
-						cout<<"Interseção do tipo /"<<endl;
-						move(0,0);
-
-						adj = height/4;
-						p1 = points->points_down_down[1].x;
-						p2 = points->points_down[1].x;
-						opt = abs(p1 - p2);
-						ang = atan(opt/adj)*180/PI;
-						ROS_INFO("O angulo da curva :%f", ang);
-						usleep(10000);
-
-						type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
-
-						if(type_move==0){
-							odom_move(16, 0);
-							odom_move(-80, 1);
-						}
-						else{
-							odom_move(16, 0);
-							odom_move(-170+ang, 1);
-						}
-					}
-					else{
-						cout<<"Interseção do tipo / (invertida)"<<endl;
-						move(0,0); // para o robô
-						adj = height/4;
-						p1 = points->points_down_down[2].x;
-						p2 = points->points_down[2].x;
-						opt = abs(p1 - p2);
-						//opt_major = points->points_center[2].x - points->points_center[1].x;
-						ang = atan(opt/adj)*180/PI;
-						//adj_major = opt_major/tan(ang*PI/180);
-						ROS_INFO("O angulo da curva :%f", ang);
-						move(0,0);
-						usleep(1000000);
-
-						type_move = call_srv_map(1); //Call the creatinmap e insert a intersection node
-
-						if(type_move==0){
-				                        odom_move(16, 0);
-				                        odom_move(80, 1);
-				                }
-				                else{
-				                        odom_move(16, 0);
-				                        odom_move(170-ang, 1);
-				                }
-
-					}
-
-				
-			}
 			
 		}
 		else if(median_points_center > 2*width/3){
@@ -420,7 +421,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				//plot.data = res/350;
 				//pid.publish(plot);
 			//Utilização de um PID para o controle de movimento do RoSeLi
-				control_data = pid(-res, 0, 0.003, 0, 0.008, 0.4, -0.4); //Funcao teste a PID do ROS
+				control_data = pid(-res, 0, 0.004, 0, 0.01, 0.4, -0.4); //Funcao teste a PID do ROS
 				/*if(ros::param::has("/controller/Kp")){
 					if(different_median_points > width/5){
 						ros::param::set("/controller/Kp", 0.01);
@@ -447,8 +448,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 	}
 
 	else if((points->points_up_up.size() ==0) &&
-			(points->points_up.size() ==2) &&
-				(points->points_down.size() == 6)){
+			(points->points_down.size() >= 6)){
 		cout<<"Interseção do tipo: Seta"<<endl;
 		move(0,0);
 		usleep(2000000);
