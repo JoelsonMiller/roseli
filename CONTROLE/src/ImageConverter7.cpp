@@ -84,23 +84,23 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 	//imshow("Imagem com Filtro", dst);
         //waitKey(5);
 
-	/*cvtColor(dst, imgHSV, CV_BGR2HSV);
-	imshow("Imagem em HSV", imgHSV);
-        waitKey(7);
+	cvtColor(dst, imgHSV, CV_BGR2HSV);
+	//imshow("Imagem em HSV", imgHSV);
+        //waitKey(7);
 
-	inRange(imgHSV, Scalar(0, 0, 0), Scalar(180, 255, 30), imgThresholder1);
-	imshow("Imagem Threshold from HSV Image", imgThresholder1);
-        waitKey(8);*/
+	inRange(imgHSV, Scalar(0, 0, 0), Scalar(180, 255, 30), imgThresholder2);
+	//imshow("Imagem Threshold from HSV Image", imgThresholder1);
+        //waitKey(8);
 
 	int closing_type = MORPH_RECT;
 	int closing_size = 6;
 	element = getStructuringElement(closing_type, Size(2*closing_size+1, 2*closing_size+1), Point(closing_size, closing_size));
 	int eroding_size = 1;
 	Mat element_teste = getStructuringElement(closing_type, Size(2*eroding_size+1, 2*eroding_size+1), Point(eroding_size, eroding_size));
-	cvtColor(dst, imgGrayScaled, CV_RGB2GRAY);
+	//cvtColor(dst, imgGrayScaled, CV_RGB2GRAY);
 	//imshow("Imagem em GrayScaled", imgGrayScaled);
         //waitKey(6);
-	threshold( imgGrayScaled, imgThresholder2, min_value_line, max_value_line, 1);
+	//threshold( imgThresholder1, imgThresholder2, min_value_line, max_value_line, 1);
 	//adaptiveThreshold(imgGrayScaled, imgThresholder2, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 75, 20);
 	morphologyEx(imgThresholder2, imgThresholder2, MORPH_OPEN, element);
 	morphologyEx(imgThresholder2, imgThresholder2, MORPH_ERODE, element_teste);

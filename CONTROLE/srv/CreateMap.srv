@@ -1,4 +1,5 @@
 geometry_msgs/Pose2D pose2d
 uint16 intr_pnt_brd
+int16 intr_type
 ---
-uint16 intr_pnt_graph
+int16 intr_pnt_graph

@@ -12,6 +12,8 @@ import time
 import math
 import getpass
 import numpy
+import os 
+import sys
 
 class subscriber_graph_map:
 
@@ -20,6 +22,17 @@ class subscriber_graph_map:
 		self.G = nx.Graph()
 		self.n_node = 0
 		self.past_node = 0
+		self.path_saved_map = rospy.get_param('/creating_map/path_from_saved_map', "/home/"+getpass.getuser()+"/Desktop/mapa.yaml")
+		load_saved_map = rospy.get_param('/creating_map/load_saved_map', False)
+		if(load_saved_map):
+			if(os.path.isfile(self.path_saved_map)):
+				self.G = nx.read_yaml(self.path_saved_map)
+				rospy.loginfo("Loaded map")
+				self.past_node = self.G.number_of_nodes() -1 
+				self.n_node = self.past_node
+			else:
+				rospy.logerr("File cannot be load or not exist")
+				sys.exit(0)
 
 	def distance(self):
 		rospy.wait_for_service('odom_server')
@@ -47,14 +60,20 @@ class subscriber_graph_map:
 
 	def nav_path(self, shortest_path, node):
 		
+		request = 0 
 		print("The next node to be rechead is: "+str(shortest_path[1]))
 		pose = nx.get_node_attributes(self.G, 'pose_graph')
 		_theta_ = pose[node].theta
 		_theta_ = math.radians(_theta_)
+
 		if(_theta_ == float('inf')):
+			print("Retornando: Se trata de uma interserção: Programar ainda")
 			node == self.past_node
 			_theta_ = pose[node].theta
 			_theta_ = math.radians(_theta_)
+			
+			return request
+		
 
 		if( math.fabs( math.cos( _theta_ ) ) == 1.0):
 			print("Horizontal")
@@ -65,11 +84,13 @@ class subscriber_graph_map:
 					print("Siga em frente")
 				else:
 					print("Vire 180")
+					request = -1
 			elif(pose[node].x > pose[shortest_path[1]].x):
 				if(_theta_ == math.radians(180.0)):
 					print("Siga em frente")
 				else:
-					print("Vire 180")	
+					print("Vire 180")
+					request = -1	
 				
 		elif(math.fabs( math.sin( _theta_ ) ) == 1.0):
 			
@@ -79,11 +100,13 @@ class subscriber_graph_map:
 					print("Siga em frente")
 				else:
 					print("Vire 180")
+					request = -1
 			elif(pose[node].x > pose[shortest_path[1]].x):
-				if(_theta_ ==math.radians(270.0)):
+				if(_theta_ == math.radians(270.0)):
 					print("Siga em frente")
 				else:
 					print("Vire 180")
+					request = -1
 
 		elif(math.sin(2*_theta_) > 0):
 			print("Diagonal /")
@@ -93,11 +116,13 @@ class subscriber_graph_map:
 					print("Siga em frente")
 				else:
 					print("Vire 180")
+					request = -1
 			elif(math.pi/2 < aux_ang and aux_ang < 3*math.pi/4):
 				if(math.pi < _theta_ and theta < 3*math.pi/4):
 					print("Siga em frente")
 				else:
 					print("Vire 180")
+					request = -1
 		else:
 			print("Diagonal ")
 			aux_ang = math.atan((pose[shortest_path[1]].y - pose[node].y)/(pose[shortest_path[1]].x - pose[node].x))
@@ -106,14 +131,16 @@ class subscriber_graph_map:
 					print("Siga em frente")
 				else:
 					print("Vire 180")
+					request = -1
 			elif(3*math.pi/4 < aux_ang and aux_ang < 2*math.pi):
 				if(3*math.pi/4 < _theta_ and theta < 2*math.pi):
 					print("Siga em frente")
 				else:
 					print("Vire 180")
+					request = -1
 		
 			
-		return		
+		return request	
 
 	def choose_path(self, node):
 		
@@ -122,7 +149,7 @@ class subscriber_graph_map:
 			print("A interseção retornada é: "+str(request))
 			self.G.node[node]['ip']-=1
 			return request	
-		
+		request = 0
 		length_min = 0
 		aux = 0
 		target = 0
@@ -140,7 +167,7 @@ class subscriber_graph_map:
 			shortest_path = nx.dijkstra_path(self.G, node, target, weight='weight')
 			print("The shortest path's length is: "+str(length_min))
 			print(shortest_path)
-			resquest = self.nav_path(shortest_path, node)
+			request = self.nav_path(shortest_path, node)
 
 		return request
 	
@@ -196,7 +223,7 @@ class subscriber_graph_map:
 				self.plot_graph()
 			self.past_node=node
 			request = self.choose_path(node)			
-
+		nx.write_yaml(self.G, self.path_saved_map)
 		return CreateMapResponse(request)
 
 

@@ -17,6 +17,7 @@ from roseli.srv import GetOdom, GetOdomRequest
 from dynamic_reconfigure.server import Server
 from roseli.cfg import ocr_tagConfig
 import re
+import math
 
 class ReadTag:
 
@@ -63,11 +64,11 @@ class ReadTag:
 
 	def get_odom_func(self):
 
-                rospy.wait_for_service('/get_odom_server')
+                rospy.wait_for_service('/odom_server')
 
                 try:
                         odom = rospy.ServiceProxy('/odom_server', GetOdom)
-                        resp = GerOdomRequest()
+                        resp = GetOdomRequest()
                         return odom(resp)
                 except rospy.ServiceException, e:
                         print "Service call failed: %s"%e
@@ -102,7 +103,7 @@ class ReadTag:
 		kernel_1 = np.ones((2, 2), np.uint8)
 		kernel_2 = np.ones((3, 3), np.uint8)
 		imgFilter_ATGC = cv2.adaptiveThreshold(img_Gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 25, 12)
-
+		
 		#cv2.imshow('Threshold Image', imgFilter_ATGC)
 		#cv2.waitKey(2000)
 		imgFilter_ATGC = cv2.morphologyEx(imgFilter_ATGC, cv2.MORPH_CLOSE, kernel_2)
@@ -120,11 +121,12 @@ class ReadTag:
 
 		#cv2.imshow('Segundo Filtro', imgFilter_IR)
 		#cv2.waitKey(2000)
-
+		
 		output = cv2.bitwise_or(imgFilter_ATGC, cv2.bitwise_not(imgFilter_IR))
 		#cv2.imshow('OUTPUT', output)
 	#	cv2.waitKey(2000)
-
+		cv2.imwrite("/home/ros/Desktop/img_tesseract.png", output)
+		
 		filename = "{}.png".format(os.getpid())
 		cv2.imwrite(filename, output)
 		text = ocr.image_to_string(imagePil.open(filename),config="-c tessedit_char_whitelist=1234567890. --user-patterns patterns.txt")
@@ -155,16 +157,34 @@ class ReadTag:
 			self._pose2d_.theta = float(separated[2])
 
 			_resp_ = self.creating_map_client(self._pose2d_, 0)
+			
 			if(_resp_.intr_pnt_graph < 0):
-				print("Turn until get 180")
-				'''flag = self.reset_enc_func()
-				odom = get_odom_func()
+
+				print("Backward until get 14 cm")
+				flag = self.reset_enc_func()
+				odom = self.get_odom_func()
+				distance = odom.dist.x
+				while(math.fabs(distance) < 14.0):
+					self.twist.linear.x = - 0.07
+					self.twist.angular.z = 0.0
+					self.cmd_vel_pub.publish(self.twist)
+					odom = self.get_odom_func()
+					distance = odom.dist.x
+				
+				print("Turn until get 180")				
+				flag = self.reset_enc_func()
+				odom = self.get_odom_func()
 				angulo = odom.dist.theta
-				while(angulo < 180.0):
+				#print("O valor do angulo eh: "+str(angulo))
+				while(angulo < 170.0):
 					self.twist.linear.x = 0.0
-					self.twist.angular.z = 0.2
-					odom = get_odom_func()
-					angulo = odom.dist.theta'''
+					self.twist.angular.z = 0.07
+					self.cmd_vel_pub.publish(self.twist)
+					odom = self.get_odom_func()
+					angulo = odom.dist.theta
+				flag = self.reset_enc_func()
+				return TagImageResponse()
+				
 			flag = self.reset_enc_func()
 
 			self.twist.linear.x = 0.2
@@ -172,6 +192,7 @@ class ReadTag:
 			for x in range(0, 4):
 				self.cmd_vel_pub.publish(self.twist)
 				time.sleep(0.5)
+
 		return TagImageResponse()
 
 if __name__=='__main__':
