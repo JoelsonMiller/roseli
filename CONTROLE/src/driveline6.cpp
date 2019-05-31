@@ -250,7 +250,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				else if((points->points_up_up[1].x-points->points_up_up[0].x)/2 + points->points_up_up[0].x > width/2){
 					cout<<"Interseção tipo: Y da esquerda"<<endl;
 					move(0,0);
-					type_move = call_srv_map(1, -1);
+					type_move = call_srv_map(1, 1);
 					if(type_move==0){
 						odom_move(10, 0);
 						odom_move(30, 1);
@@ -280,7 +280,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					ROS_INFO("O angulo da curva :%f", ang);
 					usleep(10000);
 
-					type_move = call_srv_map(1, -2); //Call the creatinmap e insert a intersection node
+					type_move = call_srv_map(1, 2); //Call the creatinmap e insert a intersection node
 
 					if(type_move==0){
 						odom_move(14, 0);
@@ -325,7 +325,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					move(0,0);
 					usleep(1000000);
 
-					type_move = call_srv_map(0, -3); //Call the creatinmap e insert a intersection node
+					type_move = call_srv_map(0, 3); //Call the creatinmap e insert a intersection node
 
 					odom_move(13, 0);
 					odom_move(-85, 1);
@@ -348,7 +348,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					move(0, 0);
 					cout<<"Interseção tipo: -|"<<endl;
 
-					type_move = call_srv_map(1, -4); //Call the creatinmap e insert a intersection node
+					type_move = call_srv_map(1, 4); //Call the creatinmap e insert a intersection node
 					if(type_move==0)
 						odom_move(2, 0);
 					else{
