@@ -22,6 +22,7 @@ class subscriber_graph_map:
 		self.G = nx.Graph()
 		self.n_node = 0
 		self.past_node = 0
+		self.intr_type = -1
 		self.path_saved_map = rospy.get_param('/creating_map/path_from_saved_map', "/home/"+getpass.getuser()+"/Desktop/mapa.yaml")
 		load_saved_map = rospy.get_param('/creating_map/load_saved_map', False)
 		if(load_saved_map):
@@ -71,7 +72,16 @@ class subscriber_graph_map:
 			node == self.past_node
 			_theta_ = pose[node].theta
 			_theta_ = math.radians(_theta_)
-			
+			if(self.intr_type == 3):
+				request = 0
+			elif(self.intr_type == 4):
+				if(pose[self.past_node].theta == pose[shortest_path[1]]):
+					request = 0
+				else:
+					request = 1
+			elif(self.intr_type == 5):
+				if(pose[self.past_node].theta == pose[self.past_node].theta + 90):
+					
 			return request
 		
 
@@ -177,6 +187,7 @@ class subscriber_graph_map:
 		self.non = self.G.number_of_nodes()
 		pose = nx.get_node_attributes(self.G, 'pose_graph')
 		#print(pose)
+		self.intr_type = data.intr_type #Possivel utilizacao na funcao nav_path 
 		request = 0
 		tol = 0.1 #
 		if (data.pose2d.x == float('inf') and data.pose2d.y == float('inf') and data.pose2d.theta == float('inf')):
