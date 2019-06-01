@@ -18,7 +18,8 @@
 	<node pkg="image_transport" type="republish" name="republish" args="compressed in:=/raspicam_node/image raw out:=/raspicam_node/image" output="screen"/>
 	<node pkg="roseli" type="readtag_v1.py" name="readtag" output="screen"/>
         <node pkg="roseli" type="creating_graph2.py" name="creating_map" output="screen">
-	  <param name="load_saved_map" value="False"/>
+	  <param name="load_saved_map" value="True"/>
+	  <param name="erase_last_node" value="False"/>
 	  <param name="path_saved_map" value="/home/ros/Desktop/mapa.yaml"/>
 	</node>
 </launch>

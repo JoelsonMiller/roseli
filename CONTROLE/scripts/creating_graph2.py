@@ -22,15 +22,18 @@ class subscriber_graph_map:
 		self.G = nx.Graph()
 		self.n_node = 0
 		self.past_node = 0
-		self.intr_type = -1
 		self.path_saved_map = rospy.get_param('/creating_map/path_from_saved_map', "/home/"+getpass.getuser()+"/Desktop/mapa.yaml")
 		load_saved_map = rospy.get_param('/creating_map/load_saved_map', False)
+		erase_last_node = rospy.get_param('/creating_map/erase_last_node', False)
 		if(load_saved_map):
 			if(os.path.isfile(self.path_saved_map)):
 				self.G = nx.read_yaml(self.path_saved_map)
 				rospy.loginfo("Loaded map")
-				self.past_node = self.G.number_of_nodes() -1 
-				self.n_node = self.past_node
+				if(erase_last_node):
+					self.n_node = self.G.number_of_nodes() - 1 
+				else:
+					self.n_node = self.G.number_of_nodes()	
+				self.past_node = self.n_node - 1
 			else:
 				rospy.logerr("File cannot be load or not exist")
 				sys.exit(0)
@@ -72,16 +75,109 @@ class subscriber_graph_map:
 			node == self.past_node
 			_theta_ = pose[node].theta
 			_theta_ = math.radians(_theta_)
-			if(self.intr_type == 3):
+
+			if(self.intr_type == 0): #Interseção do tipo 90
 				request = 0
-			elif(self.intr_type == 4):
-				if(pose[self.past_node].theta == pose[shortest_path[1]]):
+
+			elif(self.intr_type == 5): #Interseção do tipo T
+				if(math.sin(pose[node].theta) != 0):
+					if(math.sin(pose[node].theta) == 1):
+						if(pose[node].x < pose[shortest_path[1]].x):
+							request = 0
+						elif(pose[node].x > pose[shortest_path[1]].x):
+							request = 1
+					elif(math.sin(pose[node].theta) == -1):
+						if(pose[node].x < pose[shortest_path[1]].x):
+							request = 1
+						elif(pose[node].x > pose[shortest_path[1]].x):
+							resquest = 0
+
+				elif(math.sin(pose[node].theta) == 0):
+					if(math.cos(pose[node].theta) == 1):
+						if(pose[node].x < pose[shortest_path[1]].x):
+							request = 1
+						elif(pose[node].x > pose[shortest_path[1]].x):
+							request = 0
+					elif(math.cos(pose[node].theta) == -1):
+						if(pose[node].x < pose[shortest_path[1]].x):
+							request = 0
+						elif(pose[node].x > pose[shortest_path[1]].x):
+							resquest = 1
+
+			elif(self.intr_type == 4): #Interseção do tipo '|-' ou '-|'
+				if(math.sin(pose[node].theta) != 0):
+					if(math.sin(pose[shortest_path[1]].theta) != 0):
+						request = 0
+					elif(math.sin(pose[shortest_path[1]].theta) == 0):
+						request = 1
+				elif(math.sin(pose[node].theta) == 0):
+					if(math.sin(pose[shortest_path[1]].theta) == 0):
+						request = 0
+					elif(math.sin(pose[shortest_path[1]].theta) != 0):
+						request = 1			
+			
+			elif(self.intr_type == 0): #Interseção do tipo 'Y'
+				if(math.sin(pose[node].theta) != 0):
+					if(math.sin(pose[node].theta) == 1):
+						if(pose[node].x < pose[shortest_path[1]].x):
+							request = 0
+						elif(pose[node].x > pose[shorteste_path[1]].x):
+							request = 1
+					elif(math.sin(pose[node].theta) == -1):
+						if(pose[node].x < pose[shortest_path[1]].x):
+							request = 1
+						elif(pose[node].x > pose[shortest_path[1]].x):
+							resquest = 0
+
+				elif(math.sin(pose[node].theta) == 0):
+					if(math.cos(pose[node].theta) == 1):
+						if(pose[node].y < pose[shortest_path[1]].y):
+							request = 1
+						elif(pose[node].y > pose[shortest_path[1]].y):
+							request = 0
+					elif(math.cos(pose[node].theta) == -1):
+						if(pose[node].y < pose[shortest_path[1]].y):
+							request = 0
+						elif(pose[node].y > pose[shortest_path[1]].y):
+							resquest = 1	
+
+			elif(self.intr_type == 6): #Interseção do tipo '+'
+				if(math.sin(pose[node].theta) != 0):
+					if(math.sin(pose[shortest_path[1]].theta) != 0):
+						request = 0
+					else:
+						if(math.sin(pose[shortest_path[1]].theta) == 1):
+							if(pose[shortest_path[1]].x > pose[node].x):
+								request = 1
+							elif(pose[shortest_path[1]].x < pose[node].x):
+								request = 2
+						elif(math.sin(pose[shortest_path[1]].theta) == -1):
+							if(pose[shortest_path[1]].x > pose[node].x):
+								request = 2
+							elif(pose[shortest_path[1]].x < pose[node].x):
+								request = 1
+				elif(math.sin(pose[node].theta) == 0):
+					if(math.sin(pose[shortest_path[1]].theta)==0):
+						request = 0
+					else:
+						if(math.cos(pose[shortest_path[1]].theta)==1):
+							if(pose[shortest_path[1]].y > pose[node].y):
+								request = 2
+							elif(pose[shortest_path[1]].y < pose[node].y):
+								request = 1
+						elif(math.cos(pose[shortest_path[1]].theta)==-1):
+							if(pose[shortest_path[1]].y > pose[node].y):
+								request = 1
+							elif(pose[shortest_path[1]].y < pose[node].y):
+								request = 2
+
+			elif((self.intr_type == 1) or (self.intr_type == 2)):
+				if((math.fabs(math.cos(pose[shortest_path[1]].theta)) == 1) or (math.fabs(math.sin(pose[shortest_path[1]].theta)) == 1)):
 					request = 0
 				else:
 					request = 1
-			elif(self.intr_type == 5):
-				if(pose[self.past_node].theta == pose[self.past_node].theta + 90):
-					
+							
+
 			return request
 		
 
@@ -183,11 +279,23 @@ class subscriber_graph_map:
 	
 	def graph_map(self, data):
 
+		
+		##########################
+		### Ajuste a tag errada###
+		########################## 
+
+		if((data.pose2d.x == 109.5) and (data.pose2d.y == 89.5) and (data.pose2d.theta == 210)):
+			data.pose2d.x, data.pose2d.y = data.pose2d.y, data.pose2d.x
+			data.pose2d.theta = 240.0
+			print("Variaveis trocadas")
+
+		####################################
+
 		test_node = False
 		self.non = self.G.number_of_nodes()
 		pose = nx.get_node_attributes(self.G, 'pose_graph')
+		self.intr_type = data.intr_type
 		#print(pose)
-		self.intr_type = data.intr_type #Possivel utilizacao na funcao nav_path 
 		request = 0
 		tol = 0.1 #
 		if (data.pose2d.x == float('inf') and data.pose2d.y == float('inf') and data.pose2d.theta == float('inf')):

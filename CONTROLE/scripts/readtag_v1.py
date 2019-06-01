@@ -40,13 +40,13 @@ class ReadTag:
 		self.max_v = config.max_value_ocr
 		return config
 
-	def creating_map_client(self, pose2d, ip):
+	def creating_map_client(self, pose2d, ip, intr_type):
 
 		rospy.wait_for_service('/pose2D')
 
 		try:
 			create_map = rospy.ServiceProxy('/pose2D', CreateMap)
-			resp = CreateMapRequest(pose2d, ip)
+			resp = CreateMapRequest(pose2d, ip, intr_type)
 			return create_map(resp)
 		except rospy.ServiceException, e:
 			print "Service call failed: %s"%e
@@ -156,20 +156,10 @@ class ReadTag:
 			self._pose2d_.y = float(separated[1])
 			self._pose2d_.theta = float(separated[2])
 
-			_resp_ = self.creating_map_client(self._pose2d_, 0)
+			_resp_ = self.creating_map_client(self._pose2d_, 0, -1)
 			
 			if(_resp_.intr_pnt_graph < 0):
 
-				print("Backward until get 14 cm")
-				flag = self.reset_enc_func()
-				odom = self.get_odom_func()
-				distance = odom.dist.x
-				while(math.fabs(distance) < 14.0):
-					self.twist.linear.x = - 0.07
-					self.twist.angular.z = 0.0
-					self.cmd_vel_pub.publish(self.twist)
-					odom = self.get_odom_func()
-					distance = odom.dist.x
 				
 				print("Turn until get 180")				
 				flag = self.reset_enc_func()
@@ -184,6 +174,17 @@ class ReadTag:
 					angulo = odom.dist.theta
 				flag = self.reset_enc_func()
 				return TagImageResponse()
+				
+				print("Backward until get 14 cm")
+				flag = self.reset_enc_func()
+				odom = self.get_odom_func()
+				distance = odom.dist.x
+				while(math.fabs(distance) < 16.0):
+					self.twist.linear.x = -0.07
+					self.twist.angular.z = 0.0
+					self.cmd_vel_pub.publish(self.twist)
+					odom = self.get_odom_func()
+					distance = odom.dist.x
 				
 			flag = self.reset_enc_func()
 

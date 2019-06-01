@@ -421,7 +421,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				//plot.data = res/350;
 				//pid.publish(plot);
 			//Utilização de um PID para o controle de movimento do RoSeLi
-				control_data = pid(-res, 0, 0.003, 0, 0.003, 0.4, -0.4); //Funcao teste a PID do ROS
+				control_data = pid(-res, 0, 0.002, 0, 0.003, 0.3, -0.3); //Funcao teste a PID do ROS
 				/*if(ros::param::has("/controller/Kp")){
 					if(different_median_points > width/5){
 						ros::param::set("/controller/Kp", 0.01);

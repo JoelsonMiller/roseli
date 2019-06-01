@@ -200,7 +200,7 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
                 }
 
 //================================================================================
-//======== Desenha Circulos sobre os pontos de interação
+//======== Desenha Circulos sobre os pontos de interação=========================
 //================================================================================
 
 		for(int index = 0; index<it0.count; index++){
@@ -398,7 +398,7 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 					img->image = cropImage;
 					cv_bridge::CvImage img_bridge = cv_bridge::CvImage(header,sensor_msgs::image_encodings::BGR8, cropImage);
 					img_bridge.toImageMsg(tag.request.tag);
-					cout<<"I could reach this part"<<endl;
+					//cout<<"I could reach this part"<<endl;
 					if(!imageClient.call(tag)){
 						ROS_ERROR("Failed to call service image");
 					}
