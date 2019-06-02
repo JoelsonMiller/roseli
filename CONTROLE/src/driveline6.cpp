@@ -268,7 +268,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 		else if((points->points_up_up.size() == 0) &&
 				(points->points_down.size() >= 4 )&&
 					(points->points_down_down.size() >= 4)&&(points->points_down_down.size()<=6)){
-			if(points->points_down_down[0].x < width/5){
+			if(points->points_down_down[0].x < width/8){
 					cout<<"Interseção do tipo /"<<endl;
 					move(0,0);
 

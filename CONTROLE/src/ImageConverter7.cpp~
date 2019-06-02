@@ -65,8 +65,8 @@ void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg){
       			return;
     		}
 
-	cv::imshow(OPENCV_WINDOW, img->image);
-        cv::waitKey(3);
+	//cv::imshow(OPENCV_WINDOW, img->image);
+        //cv::waitKey(3);
 	locatepoints(img, imageClient, pub_points, pub_vel);
   }
 
@@ -101,8 +101,8 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 	//adaptiveThreshold(imgGrayScaled, imgThresholder2, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY_INV, 75, 20);
 	morphologyEx(imgThresholder2, imgThresholder2, MORPH_OPEN, element);
 	morphologyEx(imgThresholder2, imgThresholder2, MORPH_ERODE, element_teste);
-	//imshow("Imagem Threshold from GrayScaled Image", imgThresholder2);
-        //waitKey(4);
+	imshow("Imagem Threshold from GrayScaled Image", imgThresholder2);
+        waitKey(4);
 	
 	// Solução para o erro de detecção de bordas no lado esquerdo do frame
 	//--------------------------------------------------------------------

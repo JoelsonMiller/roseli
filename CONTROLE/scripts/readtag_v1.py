@@ -92,12 +92,22 @@ class ReadTag:
 		except cv_bridge.CvBridgeError as e:
 			print ("Error: Imagem da Tag nao recebida")
 			print(e)
-
+		
 		img = cv2.resize(img, None, fx=2, fy=2)
-		img_Gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+		rows = img.shape[0]
+		cols = img.shape[1]
+		img_Gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+
+		hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV);
+
+		for i in range(0, cols):
+			for j in range(0, rows):
+				hsv[j, i][1] = 245;
+
+		img = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
     		img_Gray = cv2.bilateralFilter(img_Gray, 5, 20, 20)
 
-		#cv2.imshow('grayscale_image', img_Gray)
+		#cv2.imshow('grayscale_image', img)
 		#cv2.waitKey(500)
 		kernel = np.ones((30, 30), np.uint8)
 		kernel_1 = np.ones((2, 2), np.uint8)
@@ -124,8 +134,8 @@ class ReadTag:
 		
 		output = cv2.bitwise_or(imgFilter_ATGC, cv2.bitwise_not(imgFilter_IR))
 		#cv2.imshow('OUTPUT', output)
-	#	cv2.waitKey(2000)
-		cv2.imwrite("/home/ros/Desktop/img_tesseract.png", output)
+		#cv2.waitKey(2000)
+		cv2.imwrite("/home/joelson/Desktop/img_tesseract.png", output)
 		
 		filename = "{}.png".format(os.getpid())
 		cv2.imwrite(filename, output)
@@ -154,7 +164,7 @@ class ReadTag:
 			
 			self._pose2d_.x = float(separated[0])
 			self._pose2d_.y = float(separated[1])
-			self._pose2d_.theta = float(separated[2])
+			self._pose2d_.theta = int(float(separated[2]))
 
 			_resp_ = self.creating_map_client(self._pose2d_, 0, -1)
 			
@@ -173,7 +183,7 @@ class ReadTag:
 					odom = self.get_odom_func()
 					angulo = odom.dist.theta
 				flag = self.reset_enc_func()
-				return TagImageResponse()
+				
 				
 				print("Backward until get 14 cm")
 				flag = self.reset_enc_func()
@@ -185,7 +195,8 @@ class ReadTag:
 					self.cmd_vel_pub.publish(self.twist)
 					odom = self.get_odom_func()
 					distance = odom.dist.x
-				
+				return TagImageResponse()
+
 			flag = self.reset_enc_func()
 
 			self.twist.linear.x = 0.2
