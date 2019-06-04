@@ -65,8 +65,8 @@ void ImageConverter::imageCallback(const sensor_msgs::ImageConstPtr& msg){
       			return;
     		}
 
-	cv::imshow(OPENCV_WINDOW, img->image);
-        cv::waitKey(3);
+	//cv::imshow(OPENCV_WINDOW, img->image);
+        //cv::waitKey(3);
 	locatepoints(img, imageClient, pub_points, pub_vel);
   }
 
@@ -200,7 +200,7 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 //========= Tentativa de diminuir os ruídos dos pontos ==========================
 //===============================================================================
 
-		for(int index = 1; index<points0.size(); index++){
+/*		for(int index = 1; index<points0.size(); index++){
 			if(points0[index].x - points0[index - 1].x < 10){
 				points0.erase(points0.begin()+index);
 			}
@@ -228,7 +228,7 @@ void locatepoints(const cv_bridge::CvImagePtr img,  ros::ServiceClient imageClie
 			if(points4[index].x - points4[index - 1].x < 10){
 				points4.erase(points4.begin()+index);
 			}
-		}
+		}*/
 //================================================================================
 
 //================================================================================

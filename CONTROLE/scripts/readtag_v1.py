@@ -94,17 +94,17 @@ class ReadTag:
 			print(e)
 		
 		img = cv2.resize(img, None, fx=2, fy=2)
-		rows = img.shape[0]
-		cols = img.shape[1]
 		img_Gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-
+		
+		'''rows = img.shape[0]
+		cols = img.shape[1]
 		hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV);
 
 		for i in range(0, cols):
 			for j in range(0, rows):
 				hsv[j, i][1] = 245;
 
-		img = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+		img = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)'''
     		img_Gray = cv2.bilateralFilter(img_Gray, 5, 20, 20)
 
 		#cv2.imshow('grayscale_image', img)
@@ -135,7 +135,7 @@ class ReadTag:
 		output = cv2.bitwise_or(imgFilter_ATGC, cv2.bitwise_not(imgFilter_IR))
 		#cv2.imshow('OUTPUT', output)
 		#cv2.waitKey(2000)
-		cv2.imwrite("/home/joelson/Desktop/img_tesseract.png", output)
+		cv2.imwrite("/home/ros/Desktop/img_tesseract.png", output)
 		
 		filename = "{}.png".format(os.getpid())
 		cv2.imwrite(filename, output)
@@ -176,7 +176,7 @@ class ReadTag:
 				odom = self.get_odom_func()
 				angulo = odom.dist.theta
 				#print("O valor do angulo eh: "+str(angulo))
-				while(angulo < 170.0):
+				while(angulo < 160.0):
 					self.twist.linear.x = 0.0
 					self.twist.angular.z = 0.07
 					self.cmd_vel_pub.publish(self.twist)

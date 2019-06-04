@@ -454,7 +454,18 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 			cout<<"Interseção do tipo: Seta"<<endl;
 			move(0,0);
 			usleep(2000000);
+			type_move = call_srv_map(1, 7);
+				if(!type_move){
+					odom_move(14, 0);
+					odom_move(-135, 1);
+
+				}else{
+					odom_move(14, 0);
+					odom_move(135, 1);
+					
+				}
 		}
+				
 	}
 
 

@@ -23,14 +23,15 @@ class subscriber_graph_map:
 		self.n_node = 0
 		self.past_node = 0
 		self.path_saved_map = rospy.get_param('/creating_map/path_from_saved_map', "/home/"+getpass.getuser()+"/Desktop/mapa.yaml")
-		load_saved_map = rospy.get_param('/creating_map/load_saved_map', False)
+		self.load_saved_map = rospy.get_param('/creating_map/load_saved_map', False)
 		erase_last_node = rospy.get_param('/creating_map/erase_last_node', False)
-		if(load_saved_map):
+		if(self.load_saved_map):
 			if(os.path.isfile(self.path_saved_map)):
 				self.G = nx.read_yaml(self.path_saved_map)
 				rospy.loginfo("Loaded map")
 				if(erase_last_node):
 					self.n_node = self.G.number_of_nodes() - 1 
+					self.G.remove_node(self.n_node)
 				else:
 					self.n_node = self.G.number_of_nodes()	
 				self.past_node = self.n_node - 1
@@ -284,9 +285,10 @@ class subscriber_graph_map:
 		### Ajuste a tag errada###
 		########################## 
 
-		if((data.pose2d.x == 109.5) and (data.pose2d.y == 89.5) and (data.pose2d.theta == 210)):
+		if((data.pose2d.x == 190.5) and (data.pose2d.y == 89.5)):
 			data.pose2d.x, data.pose2d.y = data.pose2d.y, data.pose2d.x
-			data.pose2d.theta = 240.0
+			if(data.pose2d.theta != 60):
+				data.pose2d.theta = 240.0
 			print("Variaveis trocadas")
 
 		####################################
@@ -339,9 +341,10 @@ class subscriber_graph_map:
 				#print("i gonna add the edge between: "+str(self.past_node)+" e "+str(node))
 				length = math.hypot(pose[node].x-pose[self.past_node].x, pose[node].y-pose[self.past_node].y)
 				self.G.add_edge(self.past_node , node, weight = length)
-				self.plot_graph()
-			self.past_node=node
-			request = self.choose_path(node)			
+			self.plot_graph()
+			request = self.choose_path(node)
+			self.past_node = node	
+			print("The past node is: "+str(self.past_node))		
 		nx.write_yaml(self.G, self.path_saved_map)
 		return CreateMapResponse(request)
 
