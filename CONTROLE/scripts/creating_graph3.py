@@ -14,6 +14,7 @@ import getpass
 import numpy
 import os 
 import sys
+import roslaunch
 
 class subscriber_graph_map:
 
@@ -22,6 +23,8 @@ class subscriber_graph_map:
 		self.G = nx.Graph()
 		self.n_node = 0
 		self.past_node = 0
+		self.map_completed = False
+		self.actual_node = -1
 		self.path_saved_map = rospy.get_param('/creating_map/path_from_saved_map', "/home/"+getpass.getuser()+"/Desktop/mapa.yaml")
 		self.load_saved_map = rospy.get_param('/creating_map/load_saved_map', False)
 		erase_last_node = rospy.get_param('/creating_map/erase_last_node', False)
@@ -277,9 +280,14 @@ class subscriber_graph_map:
 			request = self.nav_path(shortest_path, node)
 			
 		elif(length_min == 0):
-			if():
+			self.map_completed = True
+			for index in range(self.non):
+				neighbors=self.G.neighbors(self.non)
+				if(neighbors <= 1):
+					self.map_completed = False
+					break;
+			if(self.map_completed)
 				rospy.loginfo("The mapping is finnish")
-				self.map_completed = True
 
 		return request
 	
@@ -297,7 +305,7 @@ class subscriber_graph_map:
 			print("Variaveis trocadas")
 
 		####################################
-
+			
 		test_node = False
 		self.non = self.G.number_of_nodes()
 		pose = nx.get_node_attributes(self.G, 'pose_graph')
@@ -330,7 +338,16 @@ class subscriber_graph_map:
 					pose[node].theta = data.pose2d.theta 
 					nx.set_node_attributes(self.G, 'pose_graph', pose)
 				break
-
+		
+		if(self.map_completed and pose[node].theta != float('inf')):
+			ros_node = roslaunch.core.Node('roseli', 'imageconverter')
+			launch = roslaunch.scriptapt.ROSLaunch()
+			process = launch.launch(ros_node)
+			process.stop()
+			self.actual_node = node
+			rospy.loginfo("Waiting the goal pose: ")
+			return CreateMapResponse(0)
+		
 		if(test_node == False):
 			print ("Novo noh adicionado")
 			self.G.add_node(self.n_node, pose_graph = data.pose2d, ip = data.intr_pnt_brd)
