@@ -275,6 +275,11 @@ class subscriber_graph_map:
 			print("The shortest path's length is: "+str(length_min))
 			print(shortest_path)
 			request = self.nav_path(shortest_path, node)
+			
+		elif(length_min == 0):
+			if():
+				rospy.loginfo("The mapping is finnish")
+				self.map_completed = True
 
 		return request
 	
