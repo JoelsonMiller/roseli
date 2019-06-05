@@ -25,6 +25,7 @@ class subscriber_graph_map:
 		self.past_node = 0
 		self.map_completed = False
 		self.actual_node = -1
+		self.chasing_goal = False
 		self.path_saved_map = rospy.get_param('/creating_map/path_from_saved_map', "/home/"+getpass.getuser()+"/Desktop/mapa.yaml")
 		self.load_saved_map = rospy.get_param('/creating_map/load_saved_map', False)
 		erase_last_node = rospy.get_param('/creating_map/erase_last_node', False)
@@ -340,13 +341,16 @@ class subscriber_graph_map:
 				break
 		
 		if(self.map_completed and pose[node].theta != float('inf')):
-			ros_node = roslaunch.core.Node('roseli', 'imageconverter')
-			launch = roslaunch.scriptapt.ROSLaunch()
-			process = launch.launch(ros_node)
-			process.stop()
-			self.actual_node = node
-			rospy.loginfo("Waiting the goal pose: ")
-			return CreateMapResponse(0)
+			if(not self.chasing_goal):
+				ros_node = roslaunch.core.Node('roseli', 'imageconverter')
+				launch = roslaunch.scriptapt.ROSLaunch()
+				process = launch.launch(ros_node)
+				process.stop()
+				self.actual_node = node
+				rospy.loginfo("Waiting the goal pose: ")
+				return CreateMapResponse(0)
+			else:
+				print("Programar ainda")
 		
 		if(test_node == False):
 			print ("Novo noh adicionado")
