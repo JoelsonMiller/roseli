@@ -195,6 +195,8 @@ class ReadTag:
 					self.cmd_vel_pub.publish(self.twist)
 					odom = self.get_odom_func()
 					distance = odom.dist.x
+
+				flag = self.reset_enc_func()
 				return TagImageResponse()
 
 			flag = self.reset_enc_func()

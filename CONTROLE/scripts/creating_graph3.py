@@ -60,7 +60,18 @@ class subscriber_graph_map:
 		request_global = resp
 		time.sleep(1)
 		print("I am here")
+		self.past_node = self.current_node
 		return GoalTagResponse()
+
+	def change_theta_tag(self, node):
+		pose = nx.get_node_attributes(self.G, 'pose_graph')
+
+		if(pose[node].theta + 180.0 >= 360.0):
+			pose[node].theta -= 180.0
+		else:
+			pose[node].theta += 180.0  
+			
+		nx.set_node_attributes(self.G, 'pose_graph', pose)
 
 	def distance(self):
 		rospy.wait_for_service('odom_server')
@@ -96,107 +107,119 @@ class subscriber_graph_map:
 
 		if(_theta_ == float('inf')):
 			print("Retornando: Se trata de uma interserção: Programar ainda")
-			node == self.past_node
+			node = self.past_node
 			_theta_ = pose[node].theta
 			_theta_ = math.radians(_theta_)
+			_theta_inter_ = pose[shortest_path[1]].theta
+			_theta_inter_ = float(math.radians(_theta_inter_))
 
-			if(self.intr_type == 0): #Interseção do tipo 90
+			if(self.intr_type == 3): #Interseção do tipo 90
 				request = 0
 
 			elif(self.intr_type == 5): #Interseção do tipo T
-				if(math.sin(pose[node].theta) != 0):
-					if(math.sin(pose[node].theta) == 1):
+
+				if(int(math.sin(_theta_)) != 0):
+					print("Vertical!!")
+					if(math.sin(_theta_) == 1.0):
+						print("90 graus")
 						if(pose[node].x < pose[shortest_path[1]].x):
 							request = 0
 						elif(pose[node].x > pose[shortest_path[1]].x):
 							request = 1
-					elif(math.sin(pose[node].theta) == -1):
+					elif(math.sin(_theta_) == -1.0):
+						print("270")
 						if(pose[node].x < pose[shortest_path[1]].x):
 							request = 1
 						elif(pose[node].x > pose[shortest_path[1]].x):
 							resquest = 0
 
-				elif(math.sin(pose[node].theta) == 0):
-					if(math.cos(pose[node].theta) == 1):
-						if(pose[node].x < pose[shortest_path[1]].x):
-							request = 1
-						elif(pose[node].x > pose[shortest_path[1]].x):
-							request = 0
-					elif(math.cos(pose[node].theta) == -1):
-						if(pose[node].x < pose[shortest_path[1]].x):
-							request = 0
-						elif(pose[node].x > pose[shortest_path[1]].x):
-							resquest = 1
-
-			elif(self.intr_type == 4): #Interseção do tipo '|-' ou '-|'
-				if(math.sin(pose[node].theta) != 0):
-					if(math.sin(pose[shortest_path[1]].theta) != 0):
-						request = 0
-					elif(math.sin(pose[shortest_path[1]].theta) == 0):
-						request = 1
-				elif(math.sin(pose[node].theta) == 0):
-					if(math.sin(pose[shortest_path[1]].theta) == 0):
-						request = 0
-					elif(math.sin(pose[shortest_path[1]].theta) != 0):
-						request = 1			
-			
-			elif(self.intr_type == 0): #Interseção do tipo 'Y'
-				if(math.sin(pose[node].theta) != 0):
-					if(math.sin(pose[node].theta) == 1):
-						if(pose[node].x < pose[shortest_path[1]].x):
-							request = 0
-						elif(pose[node].x > pose[shorteste_path[1]].x):
-							request = 1
-					elif(math.sin(pose[node].theta) == -1):
-						if(pose[node].x < pose[shortest_path[1]].x):
-							request = 1
-						elif(pose[node].x > pose[shortest_path[1]].x):
-							resquest = 0
-
-				elif(math.sin(pose[node].theta) == 0):
+				elif(int(math.sin(_theta_)) == 0):
+					print("Horizontal!!")
 					if(math.cos(pose[node].theta) == 1):
 						if(pose[node].y < pose[shortest_path[1]].y):
 							request = 1
 						elif(pose[node].y > pose[shortest_path[1]].y):
 							request = 0
 					elif(math.cos(pose[node].theta) == -1):
+						if(pose[node].y < pose[shortest_path[1]].y):
+							request = 0
+						elif(pose[node].y > pose[shortest_path[1]].y):
+							resquest = 1
+
+			elif(self.intr_type == 4): #Interseção do tipo '|-' ou '-|'
+				if(int(math.sin(_theta_)) != 0):	
+					if(int(math.sin(_theta_inter_)) != 0):
+						request = 0
+					elif(int(math.sin(_theta_inter_)) == 0):
+						request = 1
+
+				elif(int(math.sin(_theta_)) == 0):
+					print("I can get in here")
+					if(int(math.sin(_theta_inter_)) == 0):
+						request = 0
+					elif(int(math.sin(_theta_inter_)) != 0):
+						request = 1			
+			
+			elif(self.intr_type == 0): #Interseção do tipo 'Y'
+				print("O valor do seno theta foi: "+str(math.sin(_theta_)))
+				if(int(math.sin(_theta_)) != 0):
+					print("I get in here!!!")
+					if(math.sin(_theta_) == 1):
+						if(pose[node].x < pose[shortest_path[1]].x):
+							request = 0
+						elif(pose[node].x > pose[shortest_path[1]].x):
+							request = 1
+					elif(math.sin(_theta_) == -1):
+						if(pose[node].x < pose[shortest_path[1]].x):
+							request = 1
+						elif(pose[node].x > pose[shortest_path[1]].x):
+							resquest = 0
+
+				elif(int(math.sin(_theta_)) == 0):
+					if(math.cos(_theta_) == 1):
+						if(pose[node].y < pose[shortest_path[1]].y):
+							request = 1
+						elif(pose[node].y > pose[shortest_path[1]].y):
+							request = 0
+					elif(math.cos(_theta_) == -1):
 						if(pose[node].y < pose[shortest_path[1]].y):
 							request = 0
 						elif(pose[node].y > pose[shortest_path[1]].y):
 							resquest = 1	
 
 			elif(self.intr_type == 6): #Interseção do tipo '+'
-				if(math.sin(pose[node].theta) != 0):
-					if(math.sin(pose[shortest_path[1]].theta) != 0):
+				if(int(math.sin(_theta_)) != 0):
+					if(int(math.sin(_theta_inter_)) != 0):
 						request = 0
 					else:
-						if(math.sin(pose[shortest_path[1]].theta) == 1):
+						if(math.cos(_theta_inter_) == 1):
 							if(pose[shortest_path[1]].x > pose[node].x):
 								request = 1
 							elif(pose[shortest_path[1]].x < pose[node].x):
 								request = 2
-						elif(math.sin(pose[shortest_path[1]].theta) == -1):
+						elif(math.cos(pose[shortest_path[1]].theta) == -1):
 							if(pose[shortest_path[1]].x > pose[node].x):
 								request = 2
 							elif(pose[shortest_path[1]].x < pose[node].x):
 								request = 1
-				elif(math.sin(pose[node].theta) == 0):
-					if(math.sin(pose[shortest_path[1]].theta)==0):
+				elif(int(math.sin(_theta_)) == 0):
+
+					if(int(math.sin(_theta_inter_)) == 0):
 						request = 0
 					else:
-						if(math.cos(pose[shortest_path[1]].theta)==1):
+						if(math.sin(_theta_inter_)==-1):
 							if(pose[shortest_path[1]].y > pose[node].y):
 								request = 2
 							elif(pose[shortest_path[1]].y < pose[node].y):
 								request = 1
-						elif(math.cos(pose[shortest_path[1]].theta)==-1):
+						elif(math.sin(_theta_inter_)==1):
 							if(pose[shortest_path[1]].y > pose[node].y):
 								request = 1
 							elif(pose[shortest_path[1]].y < pose[node].y):
 								request = 2
 
 			elif((self.intr_type == 1) or (self.intr_type == 2)):
-				if((math.fabs(math.cos(pose[shortest_path[1]].theta)) == 1) or (math.fabs(math.sin(pose[shortest_path[1]].theta)) == 1)):
+				if((math.fabs(math.cos(_theta_inter_)) == 1) or (math.fabs(math.sin(_theta_inter_)) == 1)):
 					request = 0
 				else:
 					request = 1
@@ -231,7 +254,7 @@ class subscriber_graph_map:
 				else:
 					print("Vire 180")
 					request = -1
-			elif(pose[node].x > pose[shortest_path[1]].x):
+			elif(pose[node].y > pose[shortest_path[1]].y):
 				if(_theta_ == math.radians(270.0)):
 					print("Siga em frente")
 				else:
@@ -240,30 +263,39 @@ class subscriber_graph_map:
 
 		elif(math.sin(2*_theta_) > 0):
 			print("Diagonal /")
+
 			aux_ang = math.atan((pose[shortest_path[1]].y - pose[node].y)/(pose[shortest_path[1]].x - pose[node].x))
-			if(0 < aux_ang and aux_ang < math.pi/4):
-				if(0 < _theta_ and theta < math.pi/2 ):
+			if(aux_ang < 0):
+				aux_ang += 2*math.pi
+
+			if(0 < aux_ang and aux_ang < math.pi/2):
+				if(0 < _theta_ and _theta_ < math.pi/2 ):
 					print("Siga em frente")
 				else:
 					print("Vire 180")
 					request = -1
-			elif(math.pi/2 < aux_ang and aux_ang < 3*math.pi/4):
-				if(math.pi < _theta_ and theta < 3*math.pi/4):
+			elif(math.pi < aux_ang and aux_ang < 3*math.pi/2):
+				if(math.pi < _theta_ and _theta_ < 3*math.pi/2):
 					print("Siga em frente")
 				else:
 					print("Vire 180")
 					request = -1
 		else:
-			print("Diagonal ")
+			print("Diagonal \\")
 			aux_ang = math.atan((pose[shortest_path[1]].y - pose[node].y)/(pose[shortest_path[1]].x - pose[node].x))
-			if(math.pi/4 < aux_ang and aux_ang < math.pi/2):
-				if(math.pi/2 < _theta_ and theta < math.pi ):
+
+			if(aux_ang < 0):
+				aux_ang += 2*math.pi
+
+			print("O valor de aux_ang é: "+str(aux_ang))
+			if(math.pi/2 < aux_ang and aux_ang < math.pi):
+				if(math.pi/2 < _theta_ and _theta_< math.pi ):
 					print("Siga em frente")
 				else:
 					print("Vire 180")
 					request = -1
-			elif(3*math.pi/4 < aux_ang and aux_ang < 2*math.pi):
-				if(3*math.pi/4 < _theta_ and theta < 2*math.pi):
+			elif(3*math.pi/2 < aux_ang and aux_ang < 2*math.pi):
+				if(3*math.pi/2 < _theta_ and _theta_ < 2*math.pi):
 					print("Siga em frente")
 				else:
 					print("Vire 180")
@@ -362,6 +394,8 @@ class subscriber_graph_map:
 		if(self.map_completed):
 			if(node == self.goal_pose):
 				self.chasing_goal = False
+				rospy.loginfo("The robot achieved the goal!!")
+
 			if(not self.chasing_goal):
 				if(pose[node].theta != float('inf')):
 					global request_global
@@ -374,12 +408,21 @@ class subscriber_graph_map:
 						
 					request = request_global
 					request_global = None
+
+					if(request < 0):
+						self.change_theta_tag(node)
+
 					return CreateMapResponse(request)
 			else:
 				path=nx.dijkstra_path(self.G, node, self.goal_pose, weight='weight')
 				print(path)
 				request = self.nav_path(path, node)
+
 				self.past_node = node
+
+				if(request < 0):
+					self.change_theta_tag(node)
+
 				return CreateMapResponse(request)
 
 		
@@ -400,7 +443,11 @@ class subscriber_graph_map:
 				self.G.add_edge(self.past_node , node, weight = length)
 			self.plot_graph()
 			request = self.choose_path(node)
-			self.past_node = node			
+			self.past_node = node	
+
+		if(request < 0):
+			self.change_theta_tag(node)
+		
 		nx.write_yaml(self.G, self.path_saved_map)
 		return CreateMapResponse(request)
 
