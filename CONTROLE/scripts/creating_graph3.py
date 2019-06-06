@@ -18,11 +18,7 @@ import sys
 import roslaunch
 import threading
 
-def init_node_remote():
-	ros_node = roslaunch.core.Node('roseli','motordrive')
-	launch = roslaunch.scriptapi.ROSLaunch()
-	launch.start()
-	process = launch.launch(ros_node)
+request_global = None
 
 class subscriber_graph_map:
 
@@ -55,14 +51,14 @@ class subscriber_graph_map:
 				sys.exit(0)
 
 	def getposegoal(self, data):
+		global request_global
 		self.goal_pose = data.goaltag
 		self.chasing_goal = True
 		path=nx.dijkstra_path(self.G, self.current_node, data.goaltag, weight='weight')
 		print(path)
 		resp = self.nav_path(path, self.current_node)
-		thread = threading.Thread(target=init_node_remote)
-		#thread_list.append(thread)
-		thread.start()
+		request_global = resp
+		time.sleep(1)
 		print("I am here")
 		return GoalTagResponse()
 
@@ -368,12 +364,17 @@ class subscriber_graph_map:
 				self.chasing_goal = False
 			if(not self.chasing_goal):
 				if(pose[node].theta != float('inf')):
-					os.system("rosnode kill motordrive")
-					time.sleep(2)
+					global request_global
 					self.current_node = node
 					self.past_node = node
-					rospy.loginfo("Waiting the goal pose: ")
-					return CreateMapResponse(0)
+					
+					while(request_global == None):
+						rospy.loginfo("Waiting the goal pose: ")
+						time.sleep(2)
+						
+					request = request_global
+					request_global = None
+					return CreateMapResponse(request)
 			else:
 				path=nx.dijkstra_path(self.G, node, self.goal_pose, weight='weight')
 				print(path)
