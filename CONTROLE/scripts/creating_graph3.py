@@ -4,6 +4,7 @@
 import rospy
 from roseli.srv import CreateMap, CreateMapResponse
 from roseli.srv import GetOdom, GetOdomResponse
+from roseli.srv import GoalTag, GoalTagResponse
 import networkx as nx
 import matplotlib
 matplotlib.use('TkAgg')
@@ -15,17 +16,27 @@ import numpy
 import os 
 import sys
 import roslaunch
+import threading
+
+def init_node_remote():
+	ros_node = roslaunch.core.Node('roseli','motordrive')
+	launch = roslaunch.scriptapi.ROSLaunch()
+	launch.start()
+	process = launch.launch(ros_node)
 
 class subscriber_graph_map:
 
 	def __init__(self):
                 subs = rospy.Service('/pose2D', CreateMap, self.graph_map)
+		goaltag = rospy.Service('/goalpose', GoalTag, self.getposegoal)
 		self.G = nx.Graph()
+		self.flag = 0
 		self.n_node = 0
 		self.past_node = 0
-		self.map_completed = False
-		self.actual_node = -1
+		self.map_completed = rospy.get_param('/creating_map/map_completed', False)
+		self.current_node = -1
 		self.chasing_goal = False
+		self.goal_pose = -1
 		self.path_saved_map = rospy.get_param('/creating_map/path_from_saved_map', "/home/"+getpass.getuser()+"/Desktop/mapa.yaml")
 		self.load_saved_map = rospy.get_param('/creating_map/load_saved_map', False)
 		erase_last_node = rospy.get_param('/creating_map/erase_last_node', False)
@@ -42,6 +53,18 @@ class subscriber_graph_map:
 			else:
 				rospy.logerr("File cannot be load or not exist")
 				sys.exit(0)
+
+	def getposegoal(self, data):
+		self.goal_pose = data.goaltag
+		self.chasing_goal = True
+		path=nx.dijkstra_path(self.G, self.current_node, data.goaltag, weight='weight')
+		print(path)
+		resp = self.nav_path(path, self.current_node)
+		thread = threading.Thread(target=init_node_remote)
+		#thread_list.append(thread)
+		thread.start()
+		print("I am here")
+		return GoalTagResponse()
 
 	def distance(self):
 		rospy.wait_for_service('odom_server')
@@ -283,11 +306,11 @@ class subscriber_graph_map:
 		elif(length_min == 0):
 			self.map_completed = True
 			for index in range(self.non):
-				neighbors=self.G.neighbors(self.non)
+				neighbors=self.G.neighbors(index)
 				if(neighbors <= 1):
 					self.map_completed = False
 					break;
-			if(self.map_completed)
+			if(self.map_completed):
 				rospy.loginfo("The mapping is finnish")
 
 		return request
@@ -340,17 +363,24 @@ class subscriber_graph_map:
 					nx.set_node_attributes(self.G, 'pose_graph', pose)
 				break
 		
-		if(self.map_completed and pose[node].theta != float('inf')):
+		if(self.map_completed):
+			if(node == self.goal_pose):
+				self.chasing_goal = False
 			if(not self.chasing_goal):
-				ros_node = roslaunch.core.Node('roseli', 'imageconverter')
-				launch = roslaunch.scriptapt.ROSLaunch()
-				process = launch.launch(ros_node)
-				process.stop()
-				self.actual_node = node
-				rospy.loginfo("Waiting the goal pose: ")
-				return CreateMapResponse(0)
+				if(pose[node].theta != float('inf')):
+					os.system("rosnode kill motordrive")
+					time.sleep(2)
+					self.current_node = node
+					self.past_node = node
+					rospy.loginfo("Waiting the goal pose: ")
+					return CreateMapResponse(0)
 			else:
-				print("Programar ainda")
+				path=nx.dijkstra_path(self.G, node, self.goal_pose, weight='weight')
+				print(path)
+				request = self.nav_path(path, node)
+				self.past_node = node
+				return CreateMapResponse(request)
+
 		
 		if(test_node == False):
 			print ("Novo noh adicionado")
@@ -369,15 +399,15 @@ class subscriber_graph_map:
 				self.G.add_edge(self.past_node , node, weight = length)
 			self.plot_graph()
 			request = self.choose_path(node)
-			self.past_node = node	
-			print("The past node is: "+str(self.past_node))		
+			self.past_node = node			
 		nx.write_yaml(self.G, self.path_saved_map)
 		return CreateMapResponse(request)
 
 
 if __name__=='__main__':
 
-	try:
+	try:	
+				
 		rospy.init_node('listener')
 		subs = subscriber_graph_map()
 		rospy.spin()

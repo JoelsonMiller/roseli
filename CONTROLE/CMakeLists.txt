@@ -69,6 +69,7 @@ find_package(catkin REQUIRED COMPONENTS
    GetOdom.srv
    ResetEnc.srv
    TagImage.srv
+   GoalTag.srv
  )
 
 ## Generate actions in the 'action' folder
