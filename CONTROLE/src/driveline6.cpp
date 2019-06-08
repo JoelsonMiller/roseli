@@ -35,15 +35,12 @@ int height;
 int width;
 float control_data = 0;
 double pre_error =0 , integral=0, ant_secs=0;
+float sonar_distance = 0;
 
 class Listener
 {
 public:
 
-void receive_data_control(const std_msgs::Float64::ConstPtr& controller){
-	control_data = controller->data;
-	d.sleep();
-}
 
 //------------------------------------------------------------------------------------------------------
 //Função que calcula as compomentes propocionais, derivativas e intergrais
@@ -77,6 +74,13 @@ double pid(double pv, double setpoint, double Kp, double Ki, double Kd, double _
 }
 
 //==================================================================================================================
+
+void take_sonar_distance(const std_msgs::Float64::ConstPtr& measure_data){
+
+	//Recebe o valor da medida do sensor e guarda em uma variavel global
+	sonar_distance = measure_data->data;
+
+}
 
 int call_srv_map(int interest_num, int intersection_type){
 
@@ -200,7 +204,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 	//dist = (points->points_center[1].x-points->points_center[0].x);
 //	ROS_INFO("Pontos na imagem %f", dist );
 
-	if((points->points_center.size() == 0)){ //Robô não se desloca
+	if((points->points_center.size() == 0)||(sonar_distance <= 30.0)){ //Robô não se desloca
 			move(0,0);
 
 	}else if((points->points_center.size() == 2)){
@@ -352,8 +356,8 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					if(type_move==0)
 						odom_move(2, 0);
 					else{
-						odom_move(14, 0);
-                                        	odom_move(-90, 1);
+						odom_move(12, 0);
+                                        	odom_move(-80, 1);
 						odom_move(-5, 0);
 					}
 				}
@@ -367,8 +371,8 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					}
 					else{
 						cout<<"I not supposed to be here!"<<endl;
-                                                odom_move(14, 0);
-                                                odom_move(90, 1);
+                                                odom_move(12, 0);
+                                                odom_move(80, 1);
 						odom_move(-5, 0);
                                         }
 
@@ -398,18 +402,20 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				cout<<"Interseção tipo: +"<<endl;
 				move(0,0);
 				usleep(1000000);
+
 				type_move = call_srv_map(2, 6);
+
 				if(!type_move)
 					odom_move(1, 0);
 
 				else if(type_move == 2){
-					odom_move(14, 0);
-					odom_move(90, 1);
+					odom_move(13, 0);
+					odom_move(80, 1);
 					odom_move(-5.0, 0);
 				}
 				else{
-					odom_move(14, 0);
-					odom_move(-90, 1);
+					odom_move(13, 0);
+					odom_move(-80, 1);
 					odom_move(-5.0, 0);
 				}
 			}
@@ -421,7 +427,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 				//plot.data = res/350;
 				//pid.publish(plot);
 			//Utilização de um PID para o controle de movimento do RoSeLi
-				control_data = pid(-res, 0, 0.002, 0, 0.003, 0.3, -0.3); //Funcao teste a PID do ROS
+				control_data = pid(-res, 0, 0.003, 0, 0.005, 0.3, -0.3); //Funcao teste a PID do ROS
 				/*if(ros::param::has("/controller/Kp")){
 					if(different_median_points > width/5){
 						ros::param::set("/controller/Kp", 0.01);
@@ -478,8 +484,6 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 	}
 //-----------------------------------------------------------------------
 
-
-
 }	
 
 };
@@ -497,13 +501,13 @@ int main(int argc, char** argv){
 	ros::init(argc, argv, "motor_move");
 	ros::NodeHandle node;
 	pub_vel = node.advertise<geometry_msgs::Twist>("cmd_vel" , 1);
-	//pub_enc = node.advertise<std_msgs::Empty>("/reset_enc", 1);
 	pub_state = node.advertise<std_msgs::Float64>("state", 1);
 	pub_setpoint = node.advertise<std_msgs::Float64>("setpoint", 1);
+
 	Listener l;
 	ros::Subscriber sub_points=node.subscribe("line/points", 1, &Listener::points_sub, &l);
-	//ros::Subscriber sub_enc=node.subscribe("/odom", 1, &Listener::read_encoder, &l);
-	ros::Subscriber sub_control = node.subscribe("/control_effort", 1, &Listener::receive_data_control, &l);
+	ros::Subscriber sub_control = node.subscribe("/sonar_distance", 1, &Listener::take_sonar_distance, &l);
+
 	node.param("/raspicam_node/width", width, 250);
 	node.param("/raspicam_node/height", height, 350);
 	client = node.serviceClient<roseli::CreateMap>("/pose2D");

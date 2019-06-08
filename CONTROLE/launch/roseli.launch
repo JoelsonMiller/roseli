@@ -1,26 +1,20 @@
 
 <launch>
-	<!--node name="controller" pkg="pid" type="controller" output="screen" >
-           <param name="Kp" value = "0.003" />
-           <param name="Ki" value = "0.0" />
-           <param name="Kd" value = "0.008" />
-           <param name="upper_limit" value = "0.6" />
-           <param name="lower_limit" value = "-0.6" />
-	   <param name="cutoff_frequency" value = "1.0" />
-	   <param name="max_loop_frequency" value = "1000.0" />
-	   <param name="min_loop_frequency" value = "1.0" />
-	</node-->
+
 	<node pkg="roseli" type="imageprocessor7" name="imageprocessor7" output="screen">
 		<param name="min_value_line" value = "30"/>
 		<param name="max_value_line" value="255"/>
 	</node>
+
 	<node pkg="roseli" type="motordrive" name="motordrive" output="screen"/>
 	<node pkg="image_transport" type="republish" name="republish" args="compressed in:=/raspicam_node/image raw out:=/raspicam_node/image" output="screen"/>
 	<node pkg="roseli" type="readtag_v1.py" name="readtag" output="screen"/>
+
         <node pkg="roseli" type="creating_graph3.py" name="creating_map" output="screen">
 	  <param name="load_saved_map" value="True"/>
 	  <param name="erase_last_node" value="False"/>
 	  <param name="map_completed" value="True"/>
 	  <param name="path_saved_map" value="/home/ros/Desktop/mapa.yaml"/>
 	</node>
+
 </launch>
