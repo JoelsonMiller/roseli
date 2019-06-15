@@ -100,15 +100,15 @@ class subscriber_graph_map:
 
 	def calculated_new_path(self, current_pose, goal_pose, path):
 
-		print("An obstacule was found!")
+		rospy.logwarn("An obstacule was found!")
 		
 		weight = nx.get_edge_attributes(self.G, 'weight')
 		self.save_edge_value.append({ 'node_one': current_pose, 'node_two': path[1], 'weight_edge': weight[(path[1], current_pose)] })
 		weight[(path[1], current_pose)] = 1000
 		nx.set_edge_attributes(self.G, 'weight', weight)
 		path=nx.dijkstra_path(self.G, current_pose, goal_pose, weight='weight')
-		print("The new path calculated is: ")
-		print(path)
+		rospy.loginfo("The new path calculated is: "+str(path))
+		rospy.loginfo(path)
 		return path
 
 	def take_sonar_distance(self, measure_data):
@@ -123,7 +123,7 @@ class subscriber_graph_map:
 			resp = get_odom()
 			return resp.dist.x
 		except rospy.ServiceException, e:
-			print "Service call failed: %s"%e
+			rospy.logerr("Service call failed: %s"%e)
 
 	def plot_graph(self):
 
@@ -142,7 +142,7 @@ class subscriber_graph_map:
 	def nav_path(self, shortest_path, node):
 		
 		request = 0 
-		print("The next node to be rechead is: "+str(shortest_path[1]))
+		rospy.loginfo("The next node to be rechead is: "+str(shortest_path[1]))
 		pose = nx.get_node_attributes(self.G, 'pose_graph')
 		_theta_ = pose[node].theta
 		_theta_ = math.radians(_theta_)
@@ -172,12 +172,12 @@ class subscriber_graph_map:
 							resquest = 0
 
 				elif(int(math.sin(_theta_)) == 0):
-					if(math.cos(pose[node].theta) == 1):
+					if(math.cos(_theta_) == 1):
 						if(pose[node].y < pose[shortest_path[1]].y):
 							request = 1
 						elif(pose[node].y > pose[shortest_path[1]].y):
 							request = 0
-					elif(math.cos(pose[node].theta) == -1):
+					elif(math.cos(_theta_) == -1):
 						if(pose[node].y < pose[shortest_path[1]].y):
 							request = 0
 						elif(pose[node].y > pose[shortest_path[1]].y):
@@ -224,35 +224,33 @@ class subscriber_graph_map:
 							resquest = 1	
 
 			elif(self.intr_type == 6): #Interseção do tipo '+'
-				print("I get in here")
-				if(int(math.sin(_theta_)) != 0):
-					print("I get in here!")
-					if(int(math.sin(_theta_inter_)) != 0):
+				if(int(math.sin(_theta_)) != 0): # Robô está na vertical
+
+					if(int(math.sin(_theta_inter_)) != 0): # O objetivo está na vertical
 						request = 0
 					else:
-						print("I get in here")
-						if(math.cos(_theta_inter_) == 1):
-							if(pose[shortest_path[1]].x > pose[node].x):
-								request = 1
-							elif(pose[shortest_path[1]].x < pose[node].x):
-								request = 2
-						elif(math.cos(_theta_inter_) == -1):
+						if(math.sin(_theta_) == 1):
 							if(pose[shortest_path[1]].x > pose[node].x):
 								request = 2
 							elif(pose[shortest_path[1]].x < pose[node].x):
 								request = 1
+						elif(math.sin(_theta_) == -1):
+							if(pose[shortest_path[1]].x > pose[node].x):
+								request = 1
+							elif(pose[shortest_path[1]].x < pose[node].x):
+								request = 2
 
 				elif(int(math.sin(_theta_)) == 0):
 
 					if(int(math.sin(_theta_inter_)) == 0):
 						request = 0
 					else:
-						if(math.sin(_theta_inter_)==-1):
+						if(math.cos(_theta_)==-1):
 							if(pose[shortest_path[1]].y > pose[node].y):
 								request = 2
 							elif(pose[shortest_path[1]].y < pose[node].y):
 								request = 1
-						elif(math.sin(_theta_inter_)==1):
+						elif(math.cos(_theta_)==1):
 							if(pose[shortest_path[1]].y > pose[node].y):
 								request = 1
 							elif(pose[shortest_path[1]].y < pose[node].y):
@@ -272,15 +270,15 @@ class subscriber_graph_map:
 			#print("Horizontal")
 			if(pose[node].x < pose[shortest_path[1]].x):
 				if(_theta_ == 0.0):
-					print("Siga em frente")
+					rospy.loginfo("Siga em frente")
 				else:
-					print("Vire 180")
+					rospy.loginfo("Vire 180")
 					request = -1
 			elif(pose[node].x > pose[shortest_path[1]].x):
 				if(_theta_ == math.radians(180.0)):
-					print("Siga em frente")
+					rospy.loginfo("Siga em frente")
 				else:
-					print("Vire 180")
+					rospy.loginfo("Vire 180")
 					request = -1	
 				
 		elif(math.fabs( math.sin( _theta_ ) ) == 1.0):
@@ -288,15 +286,15 @@ class subscriber_graph_map:
 			#print("Vertical")
 			if(pose[node].y < pose[shortest_path[1]].y):
 				if(_theta_ == math.radians(90.0)):
-					print("Siga em frente")
+					rospy.loginfo("Siga em frente")
 				else:
-					print("Vire 180")
+					rospy.loginfo("Vire 180")
 					request = -1
 			elif(pose[node].y > pose[shortest_path[1]].y):
 				if(_theta_ == math.radians(270.0)):
-					print("Siga em frente")
+					rospy.loginfo("Siga em frente")
 				else:
-					print("Vire 180")
+					rospy.loginfo("Vire 180")
 					request = -1
 
 		elif(math.sin(2*_theta_) > 0):
@@ -311,15 +309,15 @@ class subscriber_graph_map:
 
 				print("O "+str(_theta_)+ " graus")
 				if(0 < _theta_ and _theta_ < math.pi/2 ):
-					print("Siga em frente")
+					rospy.loginfo("Siga em frente")
 				else:
-					print("Vire 180")
+					rospy.loginfo("Vire 180")
 					request = -1
 			elif(math.pi < aux_ang and aux_ang < 3*math.pi/2):
 				if(math.pi < _theta_ and _theta_ < 3*math.pi/2):
-					print("Siga em frente")
+					rospy.loginfo("Siga em frente")
 				else:
-					print("Vire 180")
+					rospy.loginfo("Vire 180")
 					request = -1
 		else:
 			print("Diagonal \\")
@@ -331,15 +329,15 @@ class subscriber_graph_map:
 			print("O valor de aux_ang é: "+str(aux_ang))
 			if(math.pi/2 < aux_ang and aux_ang < math.pi):
 				if(math.pi/2 < _theta_ and _theta_< math.pi ):
-					print("Siga em frente")
+					rospy.loginfo("Siga em frente")
 				else:
-					print("Vire 180")
+					rospy.loginfo("Vire 180")
 					request = -1
 			elif(3*math.pi/2 < aux_ang and aux_ang < 2*math.pi):
 				if(3*math.pi/2 < _theta_ and _theta_ < 2*math.pi):
-					print("Siga em frente")
+					rospy.loginfo("Siga em frente")
 				else:
-					print("Vire 180")
+					rospy.loginfo("Vire 180")
 					request = -1
 		
 			
@@ -356,7 +354,7 @@ class subscriber_graph_map:
 		length_min = 0
 		aux = 0
 		target = 0
-		print("The lengths from the actual node "+str(node)+" from targets are: ")
+		rospy.info("The lengths from the actual node "+str(node)+" from targets are: ")
 		for index in range(self.non):
 			if (self.G.node[index]['ip'] != 0 and index != node):
 				aux = nx.dijkstra_path_length(self.G, node, index, weight='weight')
@@ -367,7 +365,7 @@ class subscriber_graph_map:
 					target = index
 
 		if(length_min != 0):
-			print("The target is: "+str(target))
+			rospy.loginfo("The target is: "+str(target))
 			shortest_path = nx.dijkstra_path(self.G, node, target, weight='weight')
 			print("The shortest path's length is: "+str(length_min))
 			print(shortest_path)
@@ -420,7 +418,7 @@ class subscriber_graph_map:
 					print("A pose da intersecao eh: x="+str(data.pose2d.x)+" e y="+str(data.pose2d.y))
 						
 				else:
-					print("Not possible to add this intersection")
+					rospy.logwarn("Not possible to add this intersection: found a tag first")
 					return CreateMapResponse(request)	
 		
 		for node in range(self.non):
@@ -445,7 +443,7 @@ class subscriber_graph_map:
 			
 			if(not test_node):
 				rospy.loginfo("A tag não existe")
-
+				#Terminar de fazer o programa
 
 			if(not self.chasing_goal):
 				if(pose[node].theta != float('inf')):
@@ -454,7 +452,7 @@ class subscriber_graph_map:
 					self.past_node = node
 					
 					while(request_global == None):
-						rospy.loginfo("Waiting the goal pose: ")
+						rospy.logwarn("Waiting the goal pose: ")
 						time.sleep(2)
 						
 					request = request_global
@@ -468,7 +466,7 @@ class subscriber_graph_map:
 				path=nx.dijkstra_path(self.G, node, self.goal_pose, weight='weight')
 				print(path)
 
-				if(self.sonar_distance <= 45.0):
+				if((self.sonar_distance <= 45.0) and (pose[node].theta != float('inf'))):
 					path = self.calculated_new_path(node, self.goal_pose, path)
 
 				pos = {}
@@ -492,7 +490,7 @@ class subscriber_graph_map:
 
 		
 		if(test_node == False):
-			print ("Novo noh adicionado")
+			rospy.loginfo("Novo noh adicionado")
 			self.G.add_node(self.n_node, pose_graph = data.pose2d, ip = data.intr_pnt_brd)
 
 			if(self.n_node != 0):

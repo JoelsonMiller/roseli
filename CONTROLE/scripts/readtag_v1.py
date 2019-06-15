@@ -165,7 +165,7 @@ class ReadTag:
 			self._pose2d_.x = float(separated[0])
 			self._pose2d_.y = float(separated[1])
 			self._pose2d_.theta = int(float(separated[2]))
-
+			rospy.loginfo("A pose lida na tag foi: "+text)
 			_resp_ = self.creating_map_client(self._pose2d_, 0, -1)
 			
 			if(_resp_.intr_pnt_graph < 0):
