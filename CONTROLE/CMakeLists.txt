@@ -154,9 +154,9 @@ add_library(ImageConverter src/ImageConverter.h
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(forward src/forward.cpp)
  #add_executable(imageprocessor1 src/ImageConverter.cpp src/main.cpp)
- add_executable(imageprocessor7 src/ImageConverter7.cpp src/main.cpp)
+ add_executable(imageprocessor src/ImageConverter7.cpp src/main.cpp)
  #add_executable(motordrive1 src/driveline.cpp)
- add_executable(motordrive src/driveline6.cpp)
+ add_executable(driveline src/driveline6.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -171,9 +171,9 @@ add_library(ImageConverter src/ImageConverter.h
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 #add_dependencies(imageprocessor1 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(imageprocessor7 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
+add_dependencies(imageprocessor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
 #add_dependencies(motordrive1 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(motordrive ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(driveline ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(forward
@@ -186,7 +186,7 @@ add_dependencies(motordrive ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTE
  #  ${catkin_LIBRARIES}
   # ${OpenCV_LIBRARIES}
  #)
-target_link_libraries(imageprocessor7
+target_link_libraries(imageprocessor
 	ImageConverter
    ${catkin_LIBRARIES}
    ${OpenCV_LIBRARIES}
@@ -196,7 +196,7 @@ target_link_libraries(imageprocessor7
  #  ${catkin_LIBRARIES}
  #)
 
-target_link_libraries(motordrive
+target_link_libraries(driveline
    ${catkin_LIBRARIES}
  )
 

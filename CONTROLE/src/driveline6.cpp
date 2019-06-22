@@ -46,7 +46,7 @@ public:
 //Função que calcula as compomentes propocionais, derivativas e intergrais
 //------------------------------------------------------------------------------------------------------
 	
-double pid(double pv, double setpoint, double Kp, double Ki, double Kd, double _max, double _min){
+double pid(float pv, double setpoint, double Kp, double Ki, double Kd, double _max, double _min){
 	
 	double secs =ros::Time::now().toSec();
 	double dt = secs - ant_secs;
@@ -178,8 +178,9 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 	double rightside =0, rightside_center = 0, rightside_up = 0;
 	double leftside = 0, leftside_center = 0, leftside_up = 0;
-	double res, res_center, res_up, median_points_up, median_points_up_up, median_points_center, different_median_points, median_points_down;
+	double res_center, res_up, median_points_up, median_points_up_up, median_points_center, different_median_points, median_points_down;
 	double dist;
+	float res;
 	float ang, p1, p2, adj, opt, adj_major, opt_major;
 	std_msgs::Float64 erro;
         std_msgs::Float64 setpoint;
@@ -279,7 +280,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 		else if((points->points_up_up.size() == 0) &&
 				(points->points_down.size() >= 4 )&&
 					(points->points_down_down.size() >= 4)&&(points->points_down_down.size()<=6)){
-			if(points->points_down_down[0].x < width/8){
+			if(points->points_down_down[0].x < width/4){
 					ROS_INFO("Interseção do tipo /");
 					move(0,0);
 
@@ -408,7 +409,7 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					odom_move(90, 1);
 					odom_move(-5.0, 0);
 				}
-				else{
+	else{
 					ROS_INFO("Caminho a seguir: Esquerda");
 					odom_move(14, 0);
 					odom_move(-90, 1);
@@ -422,8 +423,10 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 
 				type_move = call_srv_map(2, 6);
 
-				if(!type_move)
+				if(!type_move){
+					ROS_INFO("Caminho a seguir: Segue em frente");
 					odom_move(1, 0);
+				}
 
 				else if(type_move == 2){
 					ROS_INFO("Caminho a seguir: Direita");
@@ -442,9 +445,6 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 		
 			
 		else{
-				//move(0.2, res/300);
-				//plot.data = res/350;
-				//pid.publish(plot);
 			//Utilização de um PID para o controle de movimento do RoSeLi
 				control_data = pid(-res, 0, 0.003, 0, 0.003, 0.3, -0.3); //Funcao teste a PID do ROS
 				/*if(ros::param::has("/controller/Kp")){
@@ -460,12 +460,12 @@ void points_sub(const roseli::PointVector::ConstPtr& points){
 					}
 
 				}	*/			
-				/*erro.data = -res;
+				erro.data = -res;
+				pub_state.publish(erro);
+
 				setpoint.data = 0;
                         	pub_setpoint.publish(setpoint);
-                        	usleep(20000);
-                        	pub_state.publish(erro);
-                        	usleep(20000);*/
+                        	
                         	move(0.15, control_data);
                         	control_data = 0;
 		}
@@ -520,8 +520,8 @@ int main(int argc, char** argv){
 	ros::init(argc, argv, "motor_move");
 	ros::NodeHandle node;
 	pub_vel = node.advertise<geometry_msgs::Twist>("cmd_vel" , 1);
-	pub_state = node.advertise<std_msgs::Float64>("state", 1);
-	pub_setpoint = node.advertise<std_msgs::Float64>("setpoint", 1);
+	pub_state = node.advertise<std_msgs::Float64>("/state", 1);
+	pub_setpoint = node.advertise<std_msgs::Float64>("/setpoint", 1);
 
 	Listener l;
 	ros::Subscriber sub_points=node.subscribe("line/points", 1, &Listener::points_sub, &l);
