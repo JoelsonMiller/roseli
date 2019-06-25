@@ -19,6 +19,7 @@ import sys
 import roslaunch
 import threading
 
+
 request_global = None
 
 class subscriber_graph_map:
@@ -78,8 +79,8 @@ class subscriber_graph_map:
 		
 		path_edges = zip(path, path[1:])
 		nx.draw(self.G, pos, with_labels=True)
-		nx.draw_networkx(self.G, pos, nodelist=path, node_color='b', edgelist=path_edges, edge_color='b', width=4.0)
-
+		nx.draw_networkx(self.G, pos, nodelist=path, node_color='b', edgelist=path_edges, edge_color='b', width=4.0, axes=True)
+		plt.axis('on')
 		plt.savefig("/home/"+getpass.getuser()+"/Desktop/shortest_path.png", format="PNG")
 
 		resp = self.nav_path(path, self.current_node)
@@ -104,8 +105,8 @@ class subscriber_graph_map:
 
 		rospy.logwarn("An obstacule was found!")
 		weight = nx.get_edge_attributes(self.G, 'weight')
-		self.save_edge_value.append({ 'node_one': current_pose, 'node_two': path[1], 'weight_edge': weight[(path[1], current_pose)] })
-		weight[(path[1], current_pose)] = 1000
+		self.save_edge_value.append({ 'node_one': current_pose, 'node_two': path[1], 'weight_edge': weight[(current_pose, path[1])] })
+		weight[(current_pose, path[1])] = 1000
 		nx.set_edge_attributes(self.G, 'weight', weight)
 		path=nx.dijkstra_path(self.G, current_pose, goal_pose, weight='weight')
 		rospy.loginfo("The new path calculated is: "+str(path))
@@ -135,7 +136,8 @@ class subscriber_graph_map:
                         for x in range(non):
                                 pos[x] = (pose[x].x, pose[x].y)
 
-                        nx.draw(self.G, pos, with_labels=True)
+                        nx.draw_networkx(self.G, pos, with_labels=True, axes = True)
+			plt.axis('on')
                         plt.savefig("/home/"+getpass.getuser()+"/Desktop/graph_map.png", format="PNG")
 			time.sleep(1)
                         pass
@@ -476,8 +478,8 @@ class subscriber_graph_map:
 		
 				path_edges = zip(path, path[1:])
 				nx.draw(self.G, pos, with_labels=True)
-				nx.draw_networkx(self.G, pos, nodelist=path, node_color='b', edgelist=path_edges, edge_color='b', width=4.0)
-
+				nx.draw_networkx(self.G, pos, nodelist=path, node_color='b', edgelist=path_edges, edge_color='b', width=4.0, axes=True)
+				plt.axis('on')
 				plt.savefig("/home/"+getpass.getuser()+"/Desktop/shortest_path.png", format="PNG")
 
 				request = self.nav_path(path, node)

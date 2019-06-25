@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "ros/ros.h"
 #include "std_msgs/Int32MultiArray.h"
+#include "std_msgs/Empty.h"
 #include "roseli/PointVector.h"
 #include "roseli/CreateMap.h"
 #include "geometry_msgs/Twist.h"
@@ -20,10 +21,13 @@ using namespace ecl;
 Mutex mutex;
 geometry_msgs::Twist velocity;
 std_msgs::Empty reset;
+
 ros::Publisher pub_vel;
 ros::Publisher pub_enc;
 ros::Publisher pub_state;
 ros::Publisher pub_setpoint;
+ros::Publisher pub_led;
+
 ros::ServiceClient client;
 ros::ServiceClient client1;
 ros::ServiceClient client2;
@@ -106,6 +110,8 @@ void odom_move(float mag, int tipo_movimento){
 	int flag;
 	roseli::GetOdom getodom;
 	roseli::ResetEnc resetenc;
+	std_msgs::Empty data;
+	//pub_led.publish(data);
 
 	client1.call(resetenc);
 	usleep(10000);
@@ -169,6 +175,8 @@ void odom_move(float mag, int tipo_movimento){
                      	break;
 		usleep(10000);
         }
+	//pub_led.publish(data);
+	//usleep(500000);
 
 
 
@@ -522,6 +530,7 @@ int main(int argc, char** argv){
 	pub_vel = node.advertise<geometry_msgs::Twist>("cmd_vel" , 1);
 	pub_state = node.advertise<std_msgs::Float64>("/state", 1);
 	pub_setpoint = node.advertise<std_msgs::Float64>("/setpoint", 1);
+	pub_led = node.advertise<std_msgs::Empty>("/led",1);
 
 	Listener l;
 	ros::Subscriber sub_points=node.subscribe("line/points", 1, &Listener::points_sub, &l);
